@@ -110,7 +110,7 @@ export default function AdminPage() {
               <span className="text-xs font-semibold text-slate-400 uppercase">Active Workers</span>
               <Users className="w-5 h-5 text-teal-400" />
             </div>
-            <div className="text-3xl font-bold text-white mt-2">124</div>
+            <div className="text-3xl font-bold text-white mt-2">{user ? 1 : 0}</div>
             <p className="text-[10px] text-slate-500 mt-1">Total active ASHA workers in district.</p>
           </div>
         </div>
@@ -174,37 +174,23 @@ export default function AdminPage() {
             <h3 className="text-lg font-bold text-white">System Events Telemetry</h3>
             
             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 font-mono text-[10px]">
-              <div className="p-2.5 bg-slate-950 border border-slate-850 rounded-lg flex items-center justify-between">
-                <div>
-                  <span className="text-teal-400 font-bold block">EVENT_TYPE: USER_LOGIN</span>
-                  <span className="text-slate-500">ASHA Phone OTP authenticated successfully</span>
-                </div>
-                <span className="text-slate-500 shrink-0">Just Now</span>
-              </div>
-
-              <div className="p-2.5 bg-slate-950 border border-slate-850 rounded-lg flex items-center justify-between">
-                <div>
-                  <span className="text-teal-400 font-bold block">EVENT_TYPE: DB_SCHEMA_RESOLVED</span>
-                  <span className="text-slate-500">Supabase PostgreSQL schema tables active</span>
-                </div>
-                <span className="text-slate-500 shrink-0">1 min ago</span>
-              </div>
-
-              <div className="p-2.5 bg-slate-950 border border-slate-850 rounded-lg flex items-center justify-between">
-                <div>
-                  <span className="text-teal-400 font-bold block">EVENT_TYPE: TRANSLATE_ROUTER_MOUNTED</span>
-                  <span className="text-slate-500">FastAPI translation routers ready for pipeline</span>
-                </div>
-                <span className="text-slate-500 shrink-0">3 mins ago</span>
-              </div>
-
-              <div className="p-2.5 bg-slate-950 border border-slate-850 rounded-lg flex items-center justify-between">
-                <div>
-                  <span className="text-emerald-400 font-bold block">EVENT_TYPE: SW_ACTIVATE</span>
-                  <span className="text-slate-500">ASHA worker offline progressive service worker active</span>
-                </div>
-                <span className="text-slate-500 shrink-0">5 mins ago</span>
-              </div>
+              {sessions.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 text-sm">No recent telemetry events.</div>
+              ) : (
+                sessions.slice(0, 10).map((sess) => (
+                  <div key={sess.id} className="p-2.5 bg-slate-950 border border-slate-850 rounded-lg flex items-center justify-between">
+                    <div>
+                      <span className="text-teal-400 font-bold block">EVENT_TYPE: TRIAGE_EVALUATED</span>
+                      <span className="text-slate-500">
+                        Patient {sess.patient.name} evaluated. Severity: {sess.result?.severity || 'UNKNOWN'}
+                      </span>
+                    </div>
+                    <span className="text-slate-500 shrink-0">
+                      {new Date(sess.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
