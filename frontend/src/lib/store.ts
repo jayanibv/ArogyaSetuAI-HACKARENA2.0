@@ -211,6 +211,7 @@ export const useAppStore = create<AppState>()(
         sessions: s.sessions.map((sess) =>
           sess.id === id ? { ...sess, synced: true } : sess
         ),
+        syncQueue: s.syncQueue.filter((q) => q.sessionId !== id),
       })),
       clearSessions: () => set({ sessions: [], syncQueue: [] }),
 

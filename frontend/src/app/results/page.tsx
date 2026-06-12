@@ -168,11 +168,14 @@ export default function ResultsPage() {
       {/* Navigation Header */}
       <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between print:hidden">
         <button
-          onClick={() => router.push('/triage')}
+          onClick={() => {
+            resetTriageFlow();
+            router.push('/dashboard');
+          }}
           className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back to Triage</span>
+          <span>Back to Dashboard</span>
         </button>
 
         <span className="text-sm font-semibold text-teal-400">Triage Summary</span>
