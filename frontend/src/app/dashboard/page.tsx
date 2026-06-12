@@ -20,7 +20,12 @@ export default function Dashboard() {
     isSyncing,
     setIsOnline,
     setIsSyncing,
-    markSessionSynced
+    markSessionSynced,
+    setCurrentPatient,
+    setCurrentVitals,
+    setCurrentSymptoms,
+    setCurrentSymptomsEnglish,
+    setCurrentResult
   } = useAppStore();
 
   const t = LANGUAGES[languageCode]?.translations || LANGUAGES['hi'].translations;
@@ -235,9 +240,22 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-slate-500 text-sm">No recent triage histories.</div>
               ) : (
                 sessions.map((sess) => (
-                  <div key={sess.id} className="p-3 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
+                  <div
+                    key={sess.id}
+                    onClick={() => {
+                      setCurrentPatient(sess.patient);
+                      setCurrentVitals(sess.vitals || {});
+                      setCurrentSymptoms(sess.symptomsOriginal);
+                      setCurrentSymptomsEnglish(sess.symptomsEnglish);
+                      setCurrentResult(sess.result || null);
+                      router.push('/results');
+                    }}
+                    className="p-3 bg-slate-950 border border-slate-850 hover:border-teal-500/40 hover:bg-slate-900/60 cursor-pointer rounded-xl space-y-2 transition-all group"
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm text-slate-200">{sess.patient.name} ({sess.patient.age})</span>
+                      <span className="font-semibold text-sm text-slate-200 group-hover:text-teal-400 transition-colors">
+                        {sess.patient.name} ({sess.patient.age})
+                      </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getSeverityColor(sess.result?.severity)}`}>
                         {sess.result?.severity || 'LOW'}
                       </span>

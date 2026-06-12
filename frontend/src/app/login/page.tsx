@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Phone, ArrowRight, ArrowLeft, Shield, CheckCircle, Loader2, User, Lock, MapPin, Eye, EyeOff, Globe } from 'lucide-react';
+import { Heart, Phone, ArrowRight, Loader2, User, Lock, MapPin, Eye, EyeOff, Globe } from 'lucide-react';
 import { useAppStore, AshaUser } from '../../lib/store';
-import { registerUser, verifyRegistrationOTP, loginUser, verifyLoginOTP } from '../../lib/authClient';
+import { registerUser, loginUser } from '../../lib/authClient';
 import { LANGUAGES } from '../../lib/i18n';
 
 const INDIAN_STATES = [
@@ -26,15 +26,10 @@ export default function LoginPage() {
   // View state: 'login' | 'register'
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   
-  // Verification step: 'input' | 'otp'
-  const [step, setStep] = useState<'input' | 'otp'>('input');
-  
   // Input fields
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
 
   // Onboarding/Registration fields
   const [name, setName] = useState('');
@@ -45,7 +40,6 @@ export default function LoginPage() {
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
 
   // Auto-redirect if already logged in
   const { isAuthenticated } = useAppStore();
@@ -55,7 +49,7 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
-  const handleFirstLevelAuth = async (e: React.FormEvent) => {
+  const handleAuthentication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length < 10) {
       setError('Enter a valid 10-digit phone number');
@@ -75,8 +69,6 @@ export default function LoginPage() {
 
     setLoading(true);
     setError('');
-    setSuccessMsg('');
-    setDevOtpHint(null);
 
     const formattedPhone = phone.startsWith('+91') ? phone : '+91' + phone;
 
@@ -92,84 +84,62 @@ export default function LoginPage() {
           preferred_language: languageCode
         });
 
-        if (res.success) {
-          setSuccessMsg('First level verification successful. OTP sent!');
-          setStep('otp');
-          if (res.dev_otp) {
-            setDevOtpHint(res.dev_otp);
+        if (res.success && res.user) {
+          if (res.token) {
+            localStorage.setItem('asha-jwt-token', res.token);
           }
+          
+          const localUser: AshaUser = {
+            id: res.user.phone,
+            phone: res.user.phone,
+            name: res.user.name,
+            ashaId: res.user.ashaId,
+            state: res.user.state,
+            district: res.user.district,
+            preferredLanguage: res.user.preferredLanguage,
+            role: 'asha_worker'
+          };
+          
+          if (res.user.preferredLanguage) {
+            setLanguageCode(res.user.preferredLanguage);
+          }
+          
+          setUser(localUser);
+          router.push('/dashboard');
         } else {
           setError(res.message || 'Registration failed');
         }
       } else {
         // Log in flow
         const res = await loginUser(formattedPhone, password);
-        if (res.success) {
-          setSuccessMsg('Password verified. OTP sent for verification!');
-          setStep('otp');
-          if (res.dev_otp) {
-            setDevOtpHint(res.dev_otp);
+        if (res.success && res.user) {
+          if (res.token) {
+            localStorage.setItem('asha-jwt-token', res.token);
           }
+          
+          const localUser: AshaUser = {
+            id: res.user.phone,
+            phone: res.user.phone,
+            name: res.user.name,
+            ashaId: res.user.ashaId,
+            state: res.user.state,
+            district: res.user.district,
+            preferredLanguage: res.user.preferredLanguage,
+            role: 'asha_worker'
+          };
+          
+          if (res.user.preferredLanguage) {
+            setLanguageCode(res.user.preferredLanguage);
+          }
+          
+          setUser(localUser);
+          router.push('/dashboard');
         } else {
           setError(res.message || 'Incorrect credentials or user not found');
         }
       }
     } catch (err: any) {
       setError('Failed to reach authentication server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      setError('Enter the 6-digit OTP code');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    const formattedPhone = phone.startsWith('+91') ? phone : '+91' + phone;
-
-    try {
-      let res;
-      if (authMode === 'register') {
-        res = await verifyRegistrationOTP(formattedPhone, otp);
-      } else {
-        res = await verifyLoginOTP(formattedPhone, otp);
-      }
-
-      if (res.success && res.user) {
-        // Save token to localStorage / state
-        if (res.token) {
-          localStorage.setItem('asha-jwt-token', res.token);
-        }
-        
-        // Save user to state
-        const localUser: AshaUser = {
-          id: res.user.phone,
-          phone: res.user.phone,
-          name: res.user.name,
-          ashaId: res.user.ashaId,
-          state: res.user.state,
-          district: res.user.district,
-          preferredLanguage: res.user.preferredLanguage,
-          role: 'asha_worker'
-        };
-        
-        // Update store language if user had preferred
-        if (res.user.preferredLanguage) {
-          setLanguageCode(res.user.preferredLanguage);
-        }
-        
-        setUser(localUser);
-        router.push('/dashboard');
-      } else {
-        setError(res.message || 'OTP verification failed');
-      }
-    } catch (err: any) {
-      setError('OTP verification failed due to network error');
     } finally {
       setLoading(false);
     }
@@ -218,264 +188,185 @@ export default function LoginPage() {
         className="w-full max-w-md bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6"
       >
         {/* Toggle Mode Tab */}
-        {step === 'input' && (
-          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-            <button
-              onClick={() => { setAuthMode('login'); setError(''); }}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                authMode === 'login'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              ASHA Log In
-            </button>
-            <button
-              onClick={() => { setAuthMode('register'); setError(''); }}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                authMode === 'register'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Sign Up / Onboard
-            </button>
-          </div>
-        )}
+        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <button
+            onClick={() => { setAuthMode('login'); setError(''); }}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+              authMode === 'login'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            ASHA Log In
+          </button>
+          <button
+            onClick={() => { setAuthMode('register'); setError(''); }}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+              authMode === 'register'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Sign Up / Onboard
+          </button>
+        </div>
 
         {/* Title indicators */}
         <div className="text-center">
           <h2 className="text-lg font-bold text-slate-200">
-            {step === 'input'
-              ? (authMode === 'login' ? 'Authentication Gate' : 'New Worker Registration')
-              : 'Secondary Level Authentication'}
+            {authMode === 'login' ? 'Authentication Gate' : 'New Worker Registration'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            {step === 'input'
-              ? 'Enter credentials for ASHA primary verification level'
-              : `Enter 6-digit OTP code sent to +91 ${phone}`}
+            Enter credentials for ASHA primary verification level
           </p>
         </div>
 
-        {/* Level 1 Inputs Form */}
-        {step === 'input' ? (
-          <form onSubmit={handleFirstLevelAuth} className="space-y-4">
-            {/* Phone Field */}
-            <div>
-              <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-                Mobile Number *
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-3 text-slate-500 font-bold text-sm">
-                  +91
-                </span>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  placeholder="9876543210"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
-                    setError('');
-                  }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-12 pr-4 py-2.5 text-slate-100 text-base font-semibold placeholder-slate-700 focus:border-amber-500 focus:outline-none min-h-[46px]"
-                  required
-                />
-              </div>
+        {/* Inputs Form */}
+        <form onSubmit={handleAuthentication} className="space-y-4">
+          {/* Phone Field */}
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+              Mobile Number *
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-3 text-slate-600 font-bold text-sm">
+                +91
+              </span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                placeholder="9876543210"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
+                  setError('');
+                }}
+                className="w-full bg-white border border-slate-300 rounded-xl pl-12 pr-4 py-2.5 text-black text-base font-semibold placeholder-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none min-h-[46px] shadow-sm"
+                required
+              />
             </div>
+          </div>
 
-            {/* Password Field */}
-            <div>
-              <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-                Password *
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError('');
-                  }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-slate-100 placeholder-slate-700 focus:border-amber-500 focus:outline-none min-h-[46px]"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 text-slate-500 hover:text-slate-300"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Registration specific fields */}
-            {authMode === 'register' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="space-y-4 pt-2 border-t border-slate-800"
+          {/* Password Field */}
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+              Password *
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError('');
+                }}
+                className="w-full bg-white border border-slate-300 rounded-xl pl-4 pr-10 py-2.5 text-black placeholder-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none min-h-[46px] shadow-sm"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3.5 text-slate-500 hover:text-slate-700"
               >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Registration specific fields */}
+          {authMode === 'register' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="space-y-4 pt-2 border-t border-slate-800"
+            >
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Smt. Kamala Devi"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black placeholder-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none min-h-[46px] shadow-sm"
+                  required={authMode === 'register'}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+                  ASHA ID (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. ASHA-10928"
+                  value={ashaId}
+                  onChange={(e) => setAshaId(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black placeholder-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none min-h-[46px] shadow-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-                    Full Name *
+                    State *
+                  </label>
+                  <select
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-black focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none min-h-[46px] shadow-sm"
+                    required={authMode === 'register'}
+                  >
+                    <option value="" className="text-slate-500 bg-white">Select</option>
+                    {INDIAN_STATES.map(s => (
+                      <option key={s} value={s} className="text-black bg-white">{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+                    District *
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Smt. Kamala Devi"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-700 focus:border-amber-500 focus:outline-none min-h-[46px]"
+                    placeholder="e.g. Ramanagara"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black placeholder-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none min-h-[46px] shadow-sm"
                     required={authMode === 'register'}
                   />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-                    ASHA ID (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ASHA-10928"
-                    value={ashaId}
-                    onChange={(e) => setAshaId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-700 focus:border-amber-500 focus:outline-none min-h-[46px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-                      State *
-                    </label>
-                    <select
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-200 focus:border-amber-500 focus:outline-none min-h-[46px]"
-                      required={authMode === 'register'}
-                    >
-                      <option value="">Select</option>
-                      {INDIAN_STATES.map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-                      District *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Ramanagara"
-                      value={district}
-                      onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-700 focus:border-amber-500 focus:outline-none min-h-[46px]"
-                      required={authMode === 'register'}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {error && (
-              <p className="text-xs text-red-400 font-bold text-center bg-red-950/20 py-2 rounded-lg border border-red-900/30">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || phone.length < 10 || password.length < 4}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold text-base py-3.5 rounded-xl shadow-lg shadow-amber-500/15 button-hover-effect flex items-center justify-center gap-2 min-h-[50px] disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <span>{authMode === 'login' ? 'Validate Credentials' : 'Verify & Send OTP'}</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          </form>
-        ) : (
-          /* Step 2: OTP Entry */
-          <form onSubmit={handleVerifyOTP} className="space-y-4">
-            <div className="flex flex-col items-center justify-center">
-              <Shield className="w-12 h-12 text-emerald-400 mb-2" />
-              <p className="text-xs text-slate-400 text-center">
-                OTP code has been dispatched. Enter the 6 digits below.
-              </p>
-            </div>
-
-            <input
-              type="tel"
-              inputMode="numeric"
-              placeholder="000000"
-              value={otp}
-              onChange={(e) => {
-                setOtp(e.target.value.replace(/\D/g, '').slice(0, 6));
-                setError('');
-              }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 text-3xl font-extrabold placeholder-slate-800 focus:border-emerald-500 focus:outline-none min-h-[58px] tracking-[0.6em] text-center"
-              autoFocus
-              required
-            />
-
-            {devOtpHint && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-center">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block mb-1">
-                  Developer Mode Active
-                </span>
-                <span className="text-sm font-extrabold text-slate-200">
-                  Dev OTP: <span className="font-mono text-amber-300 underline select-all">{devOtpHint}</span>
-                </span>
               </div>
+            </motion.div>
+          )}
+
+          {error && (
+            <p className="text-xs text-red-400 font-bold text-center bg-red-950/20 py-2 rounded-lg border border-red-900/30">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || phone.length < 10 || password.length < 4}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold text-base py-3.5 rounded-xl shadow-lg shadow-amber-500/15 button-hover-effect flex items-center justify-center gap-2 min-h-[50px] disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <span>{authMode === 'login' ? 'Validate & Log In' : 'Register & Log In'}</span>
+                <ArrowRight className="w-5 h-5" />
+              </>
             )}
-
-            {error && (
-              <p className="text-xs text-red-400 font-bold text-center bg-red-950/20 py-2 rounded-lg border border-red-900/30">
-                {error}
-              </p>
-            )}
-
-            {successMsg && !error && (
-              <p className="text-xs text-emerald-400 font-bold text-center bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-900/20">
-                {successMsg}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || otp.length !== 6}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-extrabold text-base py-3.5 rounded-xl shadow-lg shadow-emerald-500/15 button-hover-effect flex items-center justify-center gap-2 min-h-[50px] disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Verify OTP Code</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setStep('input'); setOtp(''); setError(''); }}
-              className="w-full text-slate-400 hover:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 py-1.5"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back / Change details
-            </button>
-          </form>
-        )}
+          </button>
+        </form>
       </motion.div>
 
-      {/* Ambulance Emergency numbers */}
+      {/* Ambulance numbers */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -486,14 +377,14 @@ export default function LoginPage() {
           href="tel:112"
           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-red-950/30 border border-red-900/30 text-red-400 text-xs font-bold transition-all hover:bg-red-950/50"
         >
-          <Phone className="w-3.5 h-3.5" />
+          <Phone className="w-3.5 h-3.5" strokeWidth={2.5} />
           Emergency 112
         </a>
         <a
           href="tel:108"
           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-950/30 border border-amber-900/30 text-amber-400 text-xs font-bold transition-all hover:bg-amber-950/50"
         >
-          <Phone className="w-3.5 h-3.5" />
+          <Phone className="w-3.5 h-3.5" strokeWidth={2.5} />
           Ambulance 108
         </a>
       </motion.div>

@@ -103,6 +103,7 @@ interface AppState {
   currentPatient: PatientInfo | null;
   currentVitals: Vitals;
   currentSymptoms: string;
+  currentSymptomsEnglish: string;
   currentPhotoBase64: string | null;
   triageStep: number; // 0: patient info, 1: symptoms/voice, 2: photo, 3: results
   isTriaging: boolean;
@@ -112,6 +113,7 @@ interface AppState {
   setCurrentPatient: (patient: PatientInfo | null) => void;
   setCurrentVitals: (vitals: Vitals) => void;
   setCurrentSymptoms: (symptoms: string) => void;
+  setCurrentSymptomsEnglish: (symptoms: string) => void;
   appendToSymptoms: (text: string) => void;
   setCurrentPhoto: (base64: string | null) => void;
   setTriageStep: (step: number) => void;
@@ -169,6 +171,7 @@ export const useAppStore = create<AppState>()(
       currentPatient: null,
       currentVitals: {},
       currentSymptoms: '',
+      currentSymptomsEnglish: '',
       currentPhotoBase64: null,
       triageStep: 0,
       isTriaging: false,
@@ -178,6 +181,7 @@ export const useAppStore = create<AppState>()(
       setCurrentPatient: (patient) => set({ currentPatient: patient }),
       setCurrentVitals: (vitals) => set({ currentVitals: vitals }),
       setCurrentSymptoms: (symptoms) => set({ currentSymptoms: symptoms }),
+      setCurrentSymptomsEnglish: (symptoms) => set({ currentSymptomsEnglish: symptoms }),
       appendToSymptoms: (text) => set((s) => ({
         currentSymptoms: s.currentSymptoms
           ? s.currentSymptoms + ' ' + text
@@ -195,6 +199,7 @@ export const useAppStore = create<AppState>()(
         currentPatient: null,
         currentVitals: {},
         currentSymptoms: '',
+        currentSymptomsEnglish: '',
         currentPhotoBase64: null,
         triageStep: 0,
         isTriaging: false,

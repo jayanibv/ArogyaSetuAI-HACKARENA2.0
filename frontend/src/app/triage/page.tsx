@@ -32,6 +32,7 @@ export default function TriagePage() {
     setCurrentPatient,
     setCurrentVitals,
     setCurrentSymptoms,
+    setCurrentSymptomsEnglish,
     appendToSymptoms,
     setCurrentPhoto,
     setTriageStep,
@@ -243,6 +244,7 @@ export default function TriagePage() {
       };
 
       setCurrentResult(mockResult);
+      setCurrentSymptomsEnglish(translationResult.englishTranscript);
 
       // Create triage session record
       const sessionId = crypto.randomUUID();
