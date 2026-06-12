@@ -636,13 +636,23 @@ export default function TriagePage() {
                 )}
               </div>
 
-              <button
-                onClick={handleNextStep}
-                className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors mt-6 text-lg"
-              >
-                <span>Run Diagnostic Engine</span>
-                <Check className="w-5 h-5" />
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                {!currentPhotoBase64 && (
+                  <button
+                    onClick={handleNextStep}
+                    className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-colors text-lg border border-slate-700"
+                  >
+                    Skip
+                  </button>
+                )}
+                <button
+                  onClick={handleNextStep}
+                  className={`${currentPhotoBase64 ? 'w-full' : 'flex-[2]'} py-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-950 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-lg`}
+                >
+                  <span>Run Diagnostic Engine</span>
+                  <Check className="w-5 h-5" />
+                </button>
+              </div>
             </motion.div>
           )}
 
