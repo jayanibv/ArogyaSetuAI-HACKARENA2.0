@@ -817,7 +817,7 @@ export default function LoginPage() {
         
         {/* Full-size doctor photo background */}
         <img
-          src="/doctor_stethoscope.png"
+          src="/doctor_stethoscope.jpeg"
           alt="AarogyaSetu Healthcare banner"
           className="absolute inset-0 w-full h-full object-cover grayscale-[10%] object-center pointer-events-none"
         />
