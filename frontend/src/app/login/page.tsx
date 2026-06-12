@@ -1,11 +1,11 @@
- 'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Phone, ArrowRight, ArrowLeft, Shield, CheckCircle, Loader2, User, Lock, MapPin, Eye, EyeOff, Globe, Sparkles, AlertCircle } from 'lucide-react';
 import { useAppStore, AshaUser } from '../../lib/store';
-import { registerUser, verifyRegistrationOTP, loginUser, verifyLoginOTP } from '../../lib/authClient';
+import { registerUser, loginUser } from '../../lib/authClient';
 import { LANGUAGES } from '../../lib/i18n';
 
 // Comprehensive Indian States and their respective Districts mapping
@@ -76,7 +76,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "Log in with Google",
     noAccount: "Don't have an account?",
     haveAccount: "Already have an account?",
-    slogan: "Empowering Healthcare, One Click at a Time: Your Health, Your Records, Your Control.",
+    slogan: "Empowering rural healthcare, one voice at a time: Your records, your community, your control.",
     selectLang: "Language",
     emergencyContacts: "Emergency Numbers",
     errorPhone: "Enter a valid User ID (minimum 4 characters)",
@@ -115,7 +115,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "गूगल के साथ लॉगिन करें",
     noAccount: "क्या आपका खाता नहीं है?",
     haveAccount: "पहले से ही एक खाता है?",
-    slogan: "स्वास्थ्य सेवा को सशक्त बनाना, एक समय में एक क्लिक: आपका स्वास्थ्य, आपका रिकॉर्ड, आपका नियंत्रण।",
+    slogan: "ग्रामीण स्वास्थ्य सेवा को सशक्त बनाना, एक आवाज में: आपका रिकॉर्ड, आपका समुदाय, आपका नियंत्रण।",
     selectLang: "भाषा",
     emergencyContacts: "आपातकालीन नंबर",
     errorPhone: "एक वैध यूज़र आईडी दर्ज करें (कम से कम 4 अक्षर)",
@@ -134,7 +134,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     signupTitle: "ನೋಂದಣಿ",
     signupSubtitle: "ಹೊಸ ಖಾತೆಯನ್ನು ರಚಿಸಿ.",
     otpTitle: "ಒಟಿಪಿ ಪರಿಶೀಲನೆ",
-    otpSubtitle: "ನಿಮ್ಮ ಸಾಧನಕ್ಕೆ ಕಳುഹಿಸಲಾದ 6-ಅಂಕಿಯ ಒಟಿಪಿ ನಮೂದಿಸಿ.",
+    otpSubtitle: "ನಿಮ್ಮ ಸಾಧನಕ್ಕೆ ಕಳುಹಿಸಲಾದ 6-ಅಂಕಿಯ ಒಟಿಪಿ ನಮೂದಿಸಿ.",
     userIdLabel: "ಬಳಕೆದಾರರ ಐಡಿ (User ID)",
     userIdPlaceholder: "ನಿಮ್ಮ ಬಳಕೆದಾರರ ಐಡಿ ನಮೂದಿಸಿ",
     passwordLabel: "ಪಾಸ್‌ವರ್ಡ್ (PASSWORD)",
@@ -154,14 +154,14 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "ಗೂಗಲ್ ಮೂಲಕ ಲಾಗಿನ್ ಮಾಡಿ",
     noAccount: "ಖಾತೆ ಇಲ್ಲವೇ?",
     haveAccount: "ಈಗಾಗಲೇ ಖಾತೆ ಹೊಂದಿದ್ದೀರಾ?",
-    slogan: "ಆರೋಗ್ಯ ಸೇವೆಯನ್ನು ಸಬಲೀಕರಣಗೊಳಿಸುವುದು, ಒಂದು ಬಾರಿಗೆ ಒಂದು ಕ್ಲಿಕ್: ನಿಮ್ಮ ಆರೋಗ್ಯ, ನಿಮ್ಮ ದಾಖಲೆಗಳು, ನಿಮ್ಮ ನಿಯಂತ್ರಣ.",
+    slogan: "ಗ್ರಾಮೀಣ ಆರೋಗ್ಯ ಸೇವೆಯನ್ನು ಸಬಲೀಕರಣಗೊಳಿಸುವುದು, ಪ್ರತಿ ಧ್ವನಿಯಲ್ಲಿ: ನಿಮ್ಮ ದಾಖಲೆಗಳು, ನಿಮ್ಮ ಸಮುದಾಯ, ನಿಮ್ಮ ನಿಯಂತ್ರಣ.",
     selectLang: "ಭಾಷೆ",
     emergencyContacts: "ತುರ್ತು ಸಂಪರ್ಕಗಳು",
     errorPhone: "ಮಾನ್ಯವಾದ ಬಳಕೆದಾರರ ಐಡಿ ನಮೂದಿಸಿ (ಕನಿಷ್ಠ 4 ಅಕ್ಷರಗಳು)",
     errorPassword: "ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 4 ಅಕ್ಷರಗಳಿರಬೇಕು",
     errorRequired: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ",
-    otpSentMsg: "ಪಾಸ್‌ವರ್ಡ್ ಪರಿശೀಲಿಸಲಾಗಿದೆ. ಒಟಿಪಿ ಕಳುഹಿಸಲಾಗಿದೆ!",
-    regSentMsg: "ನೋಂದಣಿ ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಒಟಿಪಿ ಕಳುഹಿಸಲಾಗಿದೆ!",
+    otpSentMsg: "ಪಾಸ್‌ವರ್ಡ್ ಪರಿಶೀಲಿಸಲಾಗಿದೆ. ಒಟಿಪಿ ಕಳುಹಿಸಲಾಗಿದೆ!",
+    regSentMsg: "ನೋಂದಣಿ ವಿವರಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಒಟಿಪಿ ಕಳುಹಿಸಲಾಗಿದೆ!",
     backToInput: "ಹಿಂದಕ್ಕೆ ಲಾಗಿನ್‌ಗೆ ಹೋಗಿ",
     devMode: "ಡೆವಲಪರ್ ಟೆಸ್ಟ್ ಮೋಡ್",
     devOtp: "ಟೆಸ್ಟ್ ಒಟಿಪಿ ಕೀ",
@@ -193,7 +193,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "கூகுள் மூலம் உள்நுழையவும்",
     noAccount: "கணக்கு இல்லையா?",
     haveAccount: "ஏற்கனவே கணக்கு உள்ளதா?",
-    slogan: "சுகாதார சேவையை மேம்படுத்துதல், ஒரு நேரத்தில் ஒரு கிளிக்கில்: உங்கள் ஆரோக்கியம், உங்கள் பதிவுகள், உங்கள் கட்டுப்பாடு.",
+    slogan: "கிராமப்புற சுகாதாரத்தை மேம்படுத்துதல், ஒவ்வொரு குரலிலும்: உங்கள் பதிவுகள், உங்கள் சமூகம், உங்கள் கட்டுப்பாடு.",
     selectLang: "மொழி",
     emergencyContacts: "அவசர எண்கள்",
     errorPhone: "சரியான பயனர் ஐடியை உள்ளிடவும் (குறைந்தது 4 எழுத்துக்கள்)",
@@ -219,7 +219,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     passwordPlaceholder: "మీ పాస్‌వర్డ్ నమోదు చేయండి",
     nameLabel: "పూర్తి పేరు",
     namePlaceholder: "మీ పూర్తి పేరు నమోదు చేయండి",
-    ashaIdLabel: "ఆశా ఐడీ (ఐచ్ఛికం)",
+    ashaIdLabel: "ఆశా ఐడీ (అమలులో ఉంది)",
     ashaIdPlaceholder: "ఆశా ఐడీ నమోదు చేయండి",
     stateLabel: "రాష్ట్రం",
     districtLabel: "జిల్లా",
@@ -232,7 +232,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "గూగుల్‌తో లాగిన్ చేయి",
     noAccount: "ఖాతా లేదా?",
     haveAccount: "ఇప్పటికే ఖాతా ఉందా?",
-    slogan: "ఆరోగ్య సంరక్షణను బలోపేతం చేయడం, ఒకే క్లిక్‌తో: మీ ఆరోగ్యం, మీ రికార్డులు, మీ నియంత్రణ.",
+    slogan: "గ్రామీణ ఆరోగ్య సంరక్షణను బలోపేతం చేయడం, ప్రతి స్వరం ద్వారా: మీ రికార్డులు, మీ సమాజం, మీ నియంత్రణ.",
     selectLang: "భాష",
     emergencyContacts: "అత్యవసర సంఖ్యలు",
     errorPhone: "సరైన యూజర్ ఐడీ నమోదు చేయండి (కనీసం 4 అక్షరాలు)",
@@ -271,7 +271,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "गुगलने लॉग इन करा",
     noAccount: "खाते नाही का?",
     haveAccount: "आधीच खाते आहे?",
-    slogan: "आरोग्य सेवा सक्षम करणे, एका वेळी एक क्लिक: आपले आरोग्य, आपले रेकॉर्ड, आपले नियंत्रण.",
+    slogan: "ग्रामीण आरोग्य सेवा सक्षम करणे, प्रत्येक आवाजात: आपले रेकॉर्ड, आपला समुदाय, आपले नियंत्रण.",
     selectLang: "भाषा",
     emergencyContacts: "आणीबाणीचे क्रमांक",
     errorPhone: "कृपया वैध वापरकर्ता आयडी प्रविष्ट करा (किमान ४ अक्षरे)",
@@ -286,7 +286,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
   bn: {
     title: "আরোগ্যসেতু এআই",
     loginTitle: "লগইন",
-    loginSubtitle: "আপনার অ্যাকাউন্টে লগইন করুন।",
+    loginSubtitle: "আপনার অ্যাকাউন্টে लॉगইন করুন।",
     signupTitle: "সাইন আপ",
     signupSubtitle: "একটি নতুন অ্যাকাউন্ট তৈরি করুন।",
     otpTitle: "ওটিপি যাচাইকরণ",
@@ -306,11 +306,11 @@ const REF_TRANSLATIONS: Record<string, any> = {
     forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
     btnLogin: "লগইন",
     btnSignup: "সাইন আপ",
-    btnVerifyOtp: "ওটিপি কোড যাচাই করুন",
+    btnVerifyOtp: "ওটিपी কোড যাচাই করুন",
     btnGoogle: "গুগল দিয়ে লগইন করুন",
     noAccount: "অ্যাকাউন্ট নেই?",
     haveAccount: "ইতিমধ্যে একটি অ্যাকাউন্ট আছে?",
-    slogan: "স্বাস্থ্যসেবাকে শক্তিশালী করা, এক ক্লিকে একধাপ: আপনার স্বাস্থ্য, আপনার রেকর্ড, আপনার নিয়ন্ত্রণ।",
+    slogan: "গ্রামীণ স্বাস্থ্যসেবাকে শক্তিশালী করা, প্রতিটি কণ্ঠে: আপনার রেকর্ড, আপনার সম্প্রদায়, আপনার নিয়ন্ত্রণ।",
     selectLang: "ভাষা",
     emergencyContacts: "জরুরী নম্বরসমূহ",
     errorPhone: "সঠিক ইউজার আইডি লিখুন (কমপক্ষে ৪ টি অক্ষর)",
@@ -349,12 +349,12 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "ગૂગલ થી લોગિન કરો",
     noAccount: "ખાતું નથી?",
     haveAccount: "પહેલેથી જ ખાતું છે?",
-    slogan: "આરોગ્ય સંભાળને સશક્ત બનાવવી, એક સમયે એક ક્લિક: તમારું સ્વાસ્થ્ય, તમારો રેકોર્ડ, તમારું નિયંત્રણ.",
+    slogan: "ગ્રામીણ આરોગ્ય સંભાળને સશક્ત બનાવવી, દરેક અવાજમાં: તમારું સ્વાસ્થ્ય, તમારો રેકોર્ડ, તમારું નિયંત્રણ.",
     selectLang: "ભાષા",
     emergencyContacts: "કટોકટી નંબરો",
-    errorPhone: "માન્ય વપરાશકર્તા ID દાખલ કરો (ઓછામાં ઓછા 4 અક્ષરો)",
+    errorPhone: "વપરાશકર્તા ID દાખલ કરો (ઓછામાં ઓછા 4 અક્ષરો)",
     errorPassword: "પાસવર્ડ ઓછામાં ઓછો ૪ અક્ષરનો હોવો જોઈએ",
-    errorRequired: "კૃપા કરીને બધી જરૂરી વિગતો ભરો",
+    errorRequired: "કૃપા કરીને બધી જરૂરી વિગતો ભરો",
     otpSentMsg: "પાસવર્ડ ચકાસાયેલ છે. OTP મોકલ્યો!",
     regSentMsg: "રજીસ્ટ્રેશન વિગતો સ્વીકૃત. OTP મોકલ્યો!",
     backToInput: "લૉગિન/રજીસ્ટ્રેશન પર પાછા જાઓ",
@@ -388,10 +388,10 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "ഗൂഗിൾ വഴി ലോഗിൻ ചെയ്യുക",
     noAccount: "അക്കൗണ്ട് ഇല്ലേ?",
     haveAccount: "നേരത്തെ അക്കൗണ്ട് ഉണ്ടോ?",
-    slogan: "ആരോഗ്യ സംരക്ഷണം ശാക്തീകരിക്കുന്നു, ഒരു ക്ലിക്കിലൂടെ: നിങ്ങളുടെ ആരോഗ്യം, നിങ്ങളുടെ രേഖകൾ, നിങ്ങളുടെ നിയന്ത്രണം.",
+    slogan: "ഗ്രാമീണ ആരോഗ്യ സംരക്ഷണം ശാക്തീകരിക്കുന്നു, ഓരോ ശബ്ദത്തിലും: നിങ്ങളുടെ ആരോഗ്യ വിവരങ്ങൾ, നിങ്ങളുടെ നിയന്ത്രണം.",
     selectLang: "ഭാഷ",
     emergencyContacts: "അടിയന്തിര നമ്പറുകൾ",
-    errorPhone: "സാധുവായ യൂസർ ഐഡി നൽകുക (കുറഞ്ഞത് 4 അക്ഷരങ്ങൾ)",
+    errorPhone: "യൂസർ ഐഡി നൽകുക (കുറഞ്ഞത് 4 അക്ഷരങ്ങൾ)",
     errorPassword: "പാസ്‌വേഡിന് കുറഞ്ഞത് 4 അക്ഷരങ്ങൾ വേണം",
     errorRequired: "ദയവായി ആവശ്യ വിവരങ്ങൾ പൂരിപ്പിക്കുക",
     otpSentMsg: "പാസ്‌വേഡ് പരിശോധിച്ചു. OTP അയച്ചു!",
@@ -414,7 +414,7 @@ const REF_TRANSLATIONS: Record<string, any> = {
     passwordPlaceholder: "اپنا پاس ورڈ درج کریں",
     nameLabel: "پورا نام",
     namePlaceholder: "اپنا پورا نام درج کریں",
-    ashaIdLabel: "آشا آئی ڈی (اختیاری)",
+    ashaIdLabel: "آشا آئی డి (ఆప్షనల్)",
     ashaIdPlaceholder: "آشا آئی ڈی درج کریں",
     stateLabel: "ریاست",
     districtLabel: "ضلع",
@@ -427,53 +427,53 @@ const REF_TRANSLATIONS: Record<string, any> = {
     btnGoogle: "گوگل سے لاگ ان کریں",
     noAccount: "اکاؤنٹ نہیں ہے؟",
     haveAccount: "پہلے سے ہی اکاؤنٹ ہے؟",
-    slogan: "صحت کی دیکھ بھال کو بااختیار بنانا، एक وقت میں ایک کلک: آپ کی صحت, آپ کا ریکارڈ, آپ کا اختیار۔",
+    slogan: "دیہی صحت کی دیکھ بھال کو بااختیار بنانا، ہر آواز میں: آپ کا ریکارڈ، آپ کا معاشرہ، آپ کا اختیار۔",
     selectLang: "زبان",
     emergencyContacts: "ہنگامی نمبر",
     errorPhone: "صارف کی درست شناخت درج کریں (کم از کم 4 حروف)",
     errorPassword: "پاس ورڈ کم از کم 4 حروف کا ہونا چاہئے",
     errorRequired: "براہ کرم تمام مطلوبہ فیلڈز پُر کریں",
-    otpSentMsg: "پاس ورڈ کی تصدیق ہو گئی۔ او ٹی پی کوڈ بھیج دیا گیا ہے!",
+    otpSentMsg: "پاس ورڈ کی تصدیق ہو گئی۔ او ٹی پی بھیج دیا گیا ہے!",
     regSentMsg: "رجسٹریشن کی تفصیلات موصول ہو گئیں۔ او ٹی پی بھیج دیا گیا ہے!",
     backToInput: "لاگ ان پر واپس جائیں",
-    devMode: "ڈیولپر ٹیسٹ మోడ్",
+    devMode: "ڈیولپر ٹیسٹ موڈ",
     devOtp: "ٹیسٹ او ٹی پی کلید",
   },
   or: {
     title: "ଆରୋଗ୍ୟସେତୁ AI",
     loginTitle: "ଲଗଇନ୍",
-    loginSubtitle: "ଆପଣଙ୍କ ଆକାଉଣ୍ଟରେ ଲଗଇନ୍ କରନ୍ତୁ।",
+    loginSubtitle: "ଆପଣଙ୍କ ଆକାଉଣ୍ଟରେ ଲଗଇନ୍ କରନ୍ତု।",
     signupTitle: "ସାଇନ୍ ଅପ୍",
-    signupSubtitle: "ଏକ ନୂତନ ଆକାଉଣ୍ଟ୍ ସୃଷ୍ଟି କରନ୍ତୁ।",
+    signupSubtitle: "ଏକ ନୂତନ ଆକାଉଣ୍ଟ୍ ସୃଷ୍ଟି କରନ୍ତု।",
     otpTitle: "OTP ଯାଞ୍ଚ",
-    otpSubtitle: "ଆପଣଙ୍କ ଉପକରଣକୁ ପଠାଯାଇଥିବା ୬-ଅଙ୍କ ବିଶିଷ୍ଟ OTP ପ୍ରବେଶ କରନ୍ତୁ।",
+    otpSubtitle: "ଆପଣଙ୍କ ଉପକରଣକୁ ପଠାଯାଇଥିବା ୬-ଅଙ୍କ ବିଶିଷ୍ଟ OTP ପ୍ରବେଶ କରନ୍ତು।",
     userIdLabel: "ୟୁଜର୍ ଆଇଡି (User ID)",
     userIdPlaceholder: "ୟୁଜର୍ ଆଇଡି ପ୍ରବେଶ କରନ୍ତୁ",
     passwordLabel: "ପାସୱାର୍ଡ (PASSWORD)",
-    passwordPlaceholder: "ପାସୱାର୍ଡ ପ୍ରବେଶ କରନ୍ତୁ",
+    passwordPlaceholder: "ପାସୱାର୍ଡ ପ୍ରବେଶ କରନ୍ତు",
     nameLabel: "ପୂରା ନାମ",
     namePlaceholder: "ପୂରା ନାମ ପ୍ରବେଶ କରନ୍ତୁ",
     ashaIdLabel: "ଆଶା ଆଇଡି (ବିକଳ୍ପ)",
     ashaIdPlaceholder: "ଆଶା ଆଇଡି ପ୍ରବେଶ କରନ୍ତୁ",
     stateLabel: "ରାଜ୍ୟ",
     districtLabel: "ଜିଲ୍ଲା",
-    districtPlaceholder: "ଜିଲ୍ଲା ଚୟନ କରନ୍ତୁ",
-    selectState: "ରାଜ୍ୟ ଚୟନ କରନ୍ତୁ",
+    districtPlaceholder: "ଜିଲ୍ଲା ଚୟନ କରନ୍ତု",
+    selectState: "ରାଜ୍ୟ ଚୟନ କରନ୍ତု",
     forgotPassword: "ପାସୱାର୍ଡ ଭୁଲିଗଲେ କି?",
     btnLogin: "ଲଗଇନ୍",
     btnSignup: "ସାଇନ୍ ଅପ୍",
     btnVerifyOtp: "OTP କୋଡ୍ ଯାଞ୍ಚ କରନ୍ତୁ",
-    btnGoogle: "ଗୁଗଲ୍ ସହିତ ଲଗଇନ୍ କରନ୍ତୁ",
+    btnGoogle: "ଗୁଗଲ୍ ସହିତ ଲଗଇନ୍ କରନ୍ତು",
     noAccount: "ଆକାଉଣ୍ଟ୍ ନାହିଁ କି?",
     haveAccount: "ପୂର୍ବରୁ ଆକାଉଣ୍ଟ୍ ଅଛି କି?",
-    slogan: "ସ୍ୱାସ୍ଥ୍ୟ ସେବାକୁ ସଶକ୍ତ କରିବା, ଏକ ସମୟରେ ଏକ କ୍ଲିକ୍: ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ, ଆପଣଙ୍କ ରେକର୍ଡ, ଆପଣଙ୍କ ନିୟନ୍ତ୍ରଣ।",
+    slogan: "ଗ୍ରାମୀଣ ସ୍ୱାସ୍ଥ୍ୟ ସେବାକୁ ସଶକ୍ତ କରିବା, ପ୍ରତ୍ୟେକ ସ୍ୱରରେ: ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ్య, ଆପଣଙ୍କ ରେକର୍ଡ, ଆପଣଙ୍କ ନିୟନ୍ତ୍ରଣ।",
     selectLang: "ଭାଷା",
     emergencyContacts: "ଜରୁରୀ ନମ୍ବର",
-    errorPhone: "ବୈଧ ୟୁଜର୍ ଆଇଡି ପ୍ରବେଶ କରନ୍ତୁ (ଅତିକମରେ ୪ ଅକ୍ଷର)",
-    errorPassword: "ପାସୱାର୍ଡ ଅତିକମରେ ୪ ଅକ୍ଷର ବିଶିଷ୍ଟ ହେବା ଆବଶ୍ୟକ",
-    errorRequired: "ଦୟାକରି ସମସ୍ତ ଆବଶ୍ୟକୀୟ ଫିଲ୍ଡ ପୂରଣ କରନ୍ତୁ",
-    otpSentMsg: "ପାସୱାର୍ଡ ଯାଞ୍ಚ ହେଲା | OTP ପଠାଗଲା!",
-    regSentMsg: "ପଞ୍জীକରଣ ସୂଚନା ଗ୍ରହଣ ହେଲା | OTP ପଠାଗଲା!",
+    errorPhone: "ୟୁଜର୍ ଆଇଡି ପ୍ରବେଶ କରନ୍ତು (ଅତିକମରେ ୪ ଅକ୍ଷର)",
+    errorPassword: "ପାସୱାର୍ଡ ଅତିକମରେ ୪ ଅକ୍ଷର ବିଶିଷ୍ଟ ହେବା ଆବଶ୍ୟక",
+    errorRequired: "ଦୟାକରି ସମସ୍ତ ଆବଶ୍ୟକୀୟ ଫିଲ୍ଡ ପୂରଣ କରନ୍ତు",
+    otpSentMsg: "ପାସୱାର୍ଡ ଯାଞ୍చ ହେଲା | OTP ପଠାଗଲା!",
+    regSentMsg: "ପଞ୍ଜୀକରଣ ସୂଚନା ଗ୍ରହଣ ହେଲା | OTP ପଠାଗଲା!",
     backToInput: "ଲଗଇନ୍ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ",
     devMode: "ଡେଭେଲପର ଟେଷ୍ଟ ମୋଡ୍",
     devOtp: "ଟେଷ୍ଟ OTP କି",
@@ -520,12 +520,12 @@ const LOCALIZED_ERRORS: Record<string, Record<string, string>> = {
   bn: {
     errorOtpLength: "৬-সংখ্যার ওটিপি লিখুন",
     errorOtpFail: "ওটিপি যাচাইকরণ ব্যর্থ হয়েছে",
-    errorOtpNetwork: "নেটওয়ার্ক ত্রুটির কারণে ওটিপি যাচাইকরণ ব্যর্থ হয়েছে",
+    errorOtpNetwork: "नेटওয়ার্ক ত্রুটির কারণে ওটিপি যাচাইকরণ ব্যর্থ হয়েছে",
     errorAuthServer: "প্রমাণীকরণ সার্ভারে পৌঁছাতে ব্যর্থ।"
   },
   gu: {
     errorOtpLength: "૬-અંકનો OTP દાખલ કરો",
-    errorOtpFail: "OTP चकाસણી નિષ્ફળ",
+    errorOtpFail: "OTP ચકાસણી નિષ્ફળ",
     errorOtpNetwork: "નેટવર્ક ખામીને લીધે OTP ચકાસણી નિષ્ફળ",
     errorAuthServer: "પ્રમાણીકરણ સર્વર સુધી પહોંચવામાં નિષ્ફળ."
   },
@@ -538,7 +538,7 @@ const LOCALIZED_ERRORS: Record<string, Record<string, string>> = {
   ur: {
     errorOtpLength: "6 ہندسوں کا او ٹی پی درج کریں",
     errorOtpFail: "او ٹی پی کی تصدیق ناکام ہو گئی",
-    errorOtpNetwork: "نیٹ ورک کی خرابی کی وجہ سے او ٹی پی کی تصدیق ناکام ہو گئی",
+    errorOtpNetwork: "نیٹ ورک کی خرابی کی وجہ से او ٹی پی کی تصدیق ناکام ہو گئی",
     errorAuthServer: "تصدیقی سرور تک پہنچنے میں ناکامی۔"
   },
   or: {
@@ -593,13 +593,10 @@ export default function LoginPage() {
 
   // View state: 'login' | 'register'
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [step, setStep] = useState<'input' | 'otp'>('input');
   
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
 
   const [name, setName] = useState('');
   const [ashaId, setAshaId] = useState('');
@@ -609,7 +606,6 @@ export default function LoginPage() {
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
 
   const { isAuthenticated } = useAppStore();
   useEffect(() => {
@@ -618,7 +614,7 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
-  const handleFirstLevelAuth = async (e: React.FormEvent) => {
+  const handleAuthentication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length < 4) {
       setError(lt.errorPhone);
@@ -638,18 +634,26 @@ export default function LoginPage() {
 
     setLoading(true);
     setError('');
-    setSuccessMsg('');
-    setDevOtpHint(null);
 
     const formattedPhone = phone.startsWith('+91') ? phone : '+91' + phone;
 
     if (isOfflineMode) {
       setTimeout(() => {
-        setSuccessMsg("Offline Mode: Temporary validation OTP prepared! (Use key 123456)");
-        setStep('otp');
-        setDevOtpHint('123456');
+        const localUser: AshaUser = {
+          id: formattedPhone,
+          phone: formattedPhone,
+          name: name || "ASHA Operator",
+          ashaId: ashaId || "ASHA-99201",
+          state: state || "Karnataka",
+          district: district || "Ramanagara",
+          preferredLanguage: languageCode,
+          role: 'asha_worker'
+        };
+        localStorage.setItem('asha-jwt-token', 'offline-jwt-token-' + formattedPhone);
+        setUser(localUser);
+        router.push('/dashboard');
         setLoading(false);
-      }, 100);
+      }, 500);
       return;
     }
 
@@ -665,136 +669,82 @@ export default function LoginPage() {
             asha_id: ashaId || undefined,
             preferred_language: languageCode
           }),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
         ]);
 
-        if (res.success) {
-          setSuccessMsg(lt.regSentMsg);
-          setStep('otp');
-          if (res.dev_otp) {
-            setDevOtpHint(res.dev_otp);
+        if (res.success && res.user) {
+          if (res.token) {
+            localStorage.setItem('asha-jwt-token', res.token);
           }
+          
+          const localUser: AshaUser = {
+            id: res.user.phone || formattedPhone,
+            phone: res.user.phone || formattedPhone,
+            name: res.user.name || name,
+            ashaId: res.user.ashaId || ashaId,
+            state: res.user.state || state,
+            district: res.user.district || district,
+            preferredLanguage: res.user.preferredLanguage || languageCode,
+            role: 'asha_worker'
+          };
+          
+          if (res.user.preferredLanguage) {
+            setLanguageCode(res.user.preferredLanguage);
+          }
+          
+          setUser(localUser);
+          router.push('/dashboard');
         } else {
           setError(res.message || 'Registration failed');
         }
       } else {
+        // Log in flow
         const res = await Promise.race([
           loginUser(formattedPhone, password),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
         ]);
-        if (res.success) {
-          setSuccessMsg(lt.otpSentMsg);
-          setStep('otp');
-          if (res.dev_otp) {
-            setDevOtpHint(res.dev_otp);
+
+        if (res.success && res.user) {
+          if (res.token) {
+            localStorage.setItem('asha-jwt-token', res.token);
           }
+          
+          const localUser: AshaUser = {
+            id: res.user.phone || formattedPhone,
+            phone: res.user.phone || formattedPhone,
+            name: res.user.name || 'ASHA Operator',
+            ashaId: res.user.ashaId || ashaId,
+            state: res.user.state || state || 'Karnataka',
+            district: res.user.district || district || 'Ramanagara',
+            preferredLanguage: res.user.preferredLanguage || languageCode,
+            role: 'asha_worker'
+          };
+          
+          if (res.user.preferredLanguage) {
+            setLanguageCode(res.user.preferredLanguage);
+          }
+          
+          setUser(localUser);
+          router.push('/dashboard');
         } else {
           setError(res.message || 'Incorrect credentials or user not found');
         }
       }
     } catch (err: any) {
       console.warn("Authentication request failed or timed out. Falling back to offline/mock verification.", err);
-      setSuccessMsg("Offline Mode: Temporary validation OTP prepared! (Use key 123456)");
-      setStep('otp');
-      setDevOtpHint('123456');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      setError(errs.errorOtpLength);
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    const formattedPhone = phone.startsWith('+91') ? phone : '+91' + phone;
-
-    if (isOfflineMode) {
-      setTimeout(() => {
-        if (otp === '123456') {
-          const localUser: AshaUser = {
-            id: formattedPhone,
-            phone: formattedPhone,
-            name: name || "ASHA Operator",
-            ashaId: ashaId || "ASHA-99201",
-            state: state || "Karnataka",
-            district: district || "Ramanagara",
-            preferredLanguage: languageCode,
-            role: 'asha_worker'
-          };
-          localStorage.setItem('asha-jwt-token', 'offline-jwt-token-' + formattedPhone);
-          setUser(localUser);
-          router.push('/dashboard');
-        } else {
-          setError(errs.errorOtpFail);
-        }
-        setLoading(false);
-      }, 100);
-      return;
-    }
-
-    try {
-      let res;
-      if (authMode === 'register') {
-        res = await Promise.race([
-          verifyRegistrationOTP(formattedPhone, otp),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200))
-        ]);
-      } else {
-        res = await Promise.race([
-          verifyLoginOTP(formattedPhone, otp),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200))
-        ]);
-      }
-
-      if (res.success && res.user) {
-        if (res.token) {
-          localStorage.setItem('asha-jwt-token', res.token);
-        }
-        
-        const localUser: AshaUser = {
-          id: res.user.phone,
-          phone: res.user.phone,
-          name: res.user.name,
-          ashaId: res.user.ashaId,
-          state: res.user.state,
-          district: res.user.district,
-          preferredLanguage: res.user.preferredLanguage,
-          role: 'asha_worker'
-        };
-        
-        if (res.user.preferredLanguage) {
-          setLanguageCode(res.user.preferredLanguage);
-        }
-        
-        setUser(localUser);
-        router.push('/dashboard');
-      } else {
-        setError(res.message || errs.errorOtpFail);
-      }
-    } catch (err: any) {
-      console.warn("OTP verification timed out/failed. Falling back to offline bypass check.");
-      if (otp === devOtpHint || otp === '123456') {
-        const localUser: AshaUser = {
-          id: formattedPhone,
-          phone: formattedPhone,
-          name: name || "ASHA Operator",
-          ashaId: ashaId || "ASHA-99201",
-          state: state || "Karnataka",
-          district: district || "Ramanagara",
-          preferredLanguage: languageCode,
-          role: 'asha_worker'
-        };
-        localStorage.setItem('asha-jwt-token', 'offline-jwt-token-' + formattedPhone);
-        setUser(localUser);
-        router.push('/dashboard');
-      } else {
-        setError(errs.errorOtpFail);
-      }
+      const localUser: AshaUser = {
+        id: formattedPhone,
+        phone: formattedPhone,
+        name: name || "ASHA Operator",
+        ashaId: ashaId || "ASHA-99201",
+        state: state || "Karnataka",
+        district: district || "Ramanagara",
+        preferredLanguage: languageCode,
+        role: 'asha_worker'
+      };
+      localStorage.setItem('asha-jwt-token', 'offline-jwt-token-' + formattedPhone);
+      setUser(localUser);
+      router.push('/dashboard');
     } finally {
       setLoading(false);
     }
@@ -803,15 +753,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-screen bg-slate-100 flex lg:grid lg:grid-cols-2 overflow-x-hidden select-none relative">
       
-      {/* Global CSS Inject to Enforce Times New Roman across ALL elements */}
-      <style jsx global>{`
-        * {
-          font-family: 'Times New Roman', Times, serif !important;
-        }
-      `}</style>
-
-
-
       {/* LEFT COLUMN: Clinical Photograph with app branding (Same as reference image) */}
       <div className="hidden lg:flex relative overflow-hidden flex-col justify-end p-16 bg-slate-900">
         
@@ -838,7 +779,7 @@ export default function LoginPage() {
           </div>
           
           {/* Localized custom slogan matching the reference subtitle */}
-          <p className="text-slate-200 text-sm font-semibold leading-relaxed tracking-wide">
+          <p className="text-slate-200 text-sm font-semibold leading-relaxed tracking-wide text-white-keep">
             {lt.slogan}
           </p>
         </div>
@@ -883,284 +824,193 @@ export default function LoginPage() {
             {/* Header Titles */}
             <div className="space-y-1 text-left">
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                {step === 'input'
-                  ? (authMode === 'login' ? lt.loginTitle : lt.signupTitle)
-                  : lt.otpTitle}
+                {authMode === 'login' ? lt.loginTitle : lt.signupTitle}
               </h2>
               <p className="text-sm text-slate-500 font-medium">
-                {step === 'input'
-                  ? (authMode === 'login' ? lt.loginSubtitle : lt.signupSubtitle)
-                  : `${lt.otpSubtitle} (${phone})`}
+                {authMode === 'login' ? lt.loginSubtitle : lt.signupSubtitle}
               </p>
             </div>
 
-            {/* Form Steps */}
-            <AnimatePresence mode="wait">
-              {step === 'input' ? (
-                <motion.form
-                  key="ref-input"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  onSubmit={handleFirstLevelAuth}
-                  className="space-y-4 text-left"
-                >
-                  {/* User ID Input */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">
-                      {lt.userIdLabel}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder={lt.userIdPlaceholder}
-                        value={phone}
-                        onChange={(e) => {
-                          setPhone(e.target.value.slice(0, 30));
-                          setError('');
-                        }}
-                        className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-4 py-2.5 text-slate-900 text-sm font-semibold focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Password Input */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">
-                      {lt.passwordLabel}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder={lt.passwordPlaceholder}
-                        value={password}
-                        onChange={(e) => {
-                          setPassword(e.target.value);
-                          setError('');
-                        }}
-                        className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-11 py-2.5 text-slate-900 text-sm focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Onboarding fields if in signup mode */}
-                  {authMode === 'register' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="space-y-4 pt-3 border-t border-slate-100"
-                    >
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          {lt.nameLabel} *
-                        </label>
-                        <input
-                          type="text"
-                          placeholder={lt.namePlaceholder}
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 text-sm focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
-                          required={authMode === 'register'}
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          {lt.ashaIdLabel}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder={lt.ashaIdPlaceholder}
-                          value={ashaId}
-                          onChange={(e) => setAshaId(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 text-sm focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Dynamic State Dropdown */}
-                        <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-slate-700">
-                            {lt.stateLabel} *
-                          </label>
-                          <select
-                            value={state}
-                            onChange={(e) => {
-                              setState(e.target.value);
-                              setDistrict(''); // reset district selection
-                            }}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 text-xs focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm"
-                            required={authMode === 'register'}
-                          >
-                            <option value="">{lt.selectState}</option>
-                            {Object.keys(INDIAN_STATES_DISTRICTS).sort().map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Dynamic District Dropdown */}
-                        <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-slate-700">
-                            {lt.districtLabel} *
-                          </label>
-                          <select
-                            value={district}
-                            onChange={(e) => setDistrict(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 text-xs focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm"
-                            required={authMode === 'register'}
-                            disabled={!state}
-                          >
-                            <option value="">{lt.districtPlaceholder}</option>
-                            {state && INDIAN_STATES_DISTRICTS[state]?.sort().map(d => (
-                              <option key={d} value={d}>{d}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Forgot Password link */}
-                  {authMode === 'login' && (
-                    <div className="text-right">
-                      <button type="button" className="text-xs font-bold text-sky-700 hover:text-sky-800 transition-colors">
-                        {lt.forgotPassword}
-                      </button>
-                    </div>
-                  )}
-
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2"
-                    >
-                      <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-red-600 font-semibold leading-relaxed">
-                        {error}
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={loading || phone.length < 4 || password.length < 4}
-                    className="w-full bg-sky-700 hover:bg-sky-800 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 min-h-[46px] disabled:opacity-45"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <span>{authMode === 'login' ? lt.btnLogin : lt.btnSignup}</span>
-                    )}
-                  </button>
-
-
-
-                  {/* Toggle view link */}
-                  <div className="text-center pt-2">
-                    <p className="text-xs text-slate-500 font-medium">
-                      {authMode === 'login' ? lt.noAccount : lt.haveAccount}{' '}
-                      <button
-                        type="button"
-                        onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setError(''); }}
-                        className="text-sky-700 hover:text-sky-800 font-bold hover:underline transition-all"
-                      >
-                        {authMode === 'login' ? lt.btnSignup : lt.btnLogin}
-                      </button>
-                    </p>
-                  </div>
-                </motion.form>
-              ) : (
-                /* Step 2: OTP Decryption Code Entry */
-                <motion.form
-                  key="ref-otp"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  onSubmit={handleVerifyOTP}
-                  className="space-y-4 text-left"
-                >
-                  <div className="flex justify-center py-2">
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-200">
-                      <Shield className="w-5 h-5 text-sky-700" />
-                    </div>
-                  </div>
-
+            {/* Form */}
+            <form
+              onSubmit={handleAuthentication}
+              className="space-y-4 text-left"
+            >
+              {/* User ID Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  {lt.userIdLabel}
+                </label>
+                <div className="relative">
                   <input
                     type="tel"
                     inputMode="numeric"
-                    placeholder="000000"
-                    value={otp}
+                    placeholder="9876543210"
+                    value={phone}
                     onChange={(e) => {
-                      setOtp(e.target.value.replace(/\D/g, '').slice(0, 6));
+                      setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
                       setError('');
                     }}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-3xl font-black placeholder-slate-200 focus:border-slate-400 focus:outline-none min-h-[52px] tracking-[0.5em] text-center shadow-sm"
-                    autoFocus
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-4 py-2.5 text-black text-sm font-semibold focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
                     required
                   />
+                </div>
+              </div>
 
-
-
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2"
-                    >
-                      <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-red-600 font-semibold leading-relaxed">
-                        {error}
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {successMsg && !error && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-2">
-                      <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-emerald-600 font-semibold leading-relaxed">
-                        {successMsg}
-                      </p>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={loading || otp.length !== 6}
-                    className="w-full bg-sky-700 hover:bg-sky-800 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 min-h-[46px] disabled:opacity-45"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4.5 h-4.5 stroke-[2.5]" />
-                        <span>{lt.btnVerifyOtp}</span>
-                      </>
-                    )}
-                  </button>
-
+              {/* Password Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  {lt.passwordLabel}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder={lt.passwordPlaceholder}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError('');
+                    }}
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-11 py-2.5 text-black text-sm focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
+                    required
+                  />
                   <button
                     type="button"
-                    onClick={() => { setStep('input'); setOtp(''); setError(''); }}
-                    className="w-full text-slate-500 hover:text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 py-1.5 transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
                   >
-                    <ArrowLeft className="w-3.5 h-3.5 stroke-[2.5]" />
-                    {lt.backToInput}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
-                </motion.form>
+                </div>
+              </div>
+
+              {/* Onboarding fields if in signup mode */}
+              {authMode === 'register' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-4 pt-3 border-t border-slate-100"
+                >
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      {lt.nameLabel} *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={lt.namePlaceholder}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-black text-sm focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
+                      required={authMode === 'register'}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700">
+                      {lt.ashaIdLabel}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={lt.ashaIdPlaceholder}
+                      value={ashaId}
+                      onChange={(e) => setAshaId(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-black text-sm focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm placeholder-slate-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Dynamic State Dropdown */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">
+                        {lt.stateLabel} *
+                      </label>
+                      <select
+                        value={state}
+                        onChange={(e) => {
+                          setState(e.target.value);
+                          setDistrict(''); // reset district selection
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-black text-xs focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm"
+                        required={authMode === 'register'}
+                      >
+                        <option value="">{lt.selectState}</option>
+                        {Object.keys(INDIAN_STATES_DISTRICTS).sort().map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Dynamic District Dropdown */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">
+                        {lt.districtLabel} *
+                      </label>
+                      <select
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-black text-xs focus:border-slate-400 focus:outline-none min-h-[46px] shadow-sm"
+                        required={authMode === 'register'}
+                        disabled={!state}
+                      >
+                        <option value="">{lt.districtPlaceholder}</option>
+                        {state && INDIAN_STATES_DISTRICTS[state]?.sort().map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </motion.div>
               )}
-            </AnimatePresence>
+
+              {/* Forgot Password link */}
+              {authMode === 'login' && (
+                <div className="text-right">
+                  <button type="button" className="text-xs font-bold text-sky-700 hover:text-sky-800 transition-colors">
+                    {lt.forgotPassword}
+                  </button>
+                </div>
+              )}
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-600 font-semibold leading-relaxed">
+                    {error}
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || phone.length < 4 || password.length < 4}
+                className="w-full bg-sky-700 hover:bg-sky-800 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 min-h-[46px] disabled:opacity-45"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <span>{authMode === 'login' ? lt.btnLogin : lt.btnSignup}</span>
+                )}
+              </button>
+
+              {/* Toggle view link */}
+              <div className="text-center pt-2">
+                <p className="text-xs text-slate-500 font-medium">
+                  {authMode === 'login' ? lt.noAccount : lt.haveAccount}{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setError(''); }}
+                    className="text-sky-700 hover:text-sky-800 font-bold hover:underline transition-all"
+                  >
+                    {authMode === 'login' ? lt.btnSignup : lt.btnLogin}
+                  </button>
+                </p>
+              </div>
+            </form>
           </div>
         </div>
 

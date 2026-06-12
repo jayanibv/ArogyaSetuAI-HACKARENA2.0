@@ -100,97 +100,41 @@ async def register_user(req: RegisterRequest):
         else:
             raise HTTPException(status_code=400, detail="Invalid phone format. Enter a 10-digit number.")
 
-    # Check if user already exists and is verified
+    # Check if user already exists
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE phone = ?", (phone_clean,))
     existing_user = cursor.fetchone()
-    conn.close()
 
     if existing_user:
-        if existing_user["verified"] == 1:
-            raise HTTPException(status_code=400, detail="Phone number already registered. Please login.")
-        # If user exists but is NOT verified, we will allow them to re-register/re-send OTP.
+        conn.close()
+        raise HTTPException(status_code=400, detail="Phone number already registered. Please login.")
 
     # Hash the password
     hashed = hash_password(req.password)
 
-    # Generate 6-digit OTP
-    otp = generate_otp()
-    expires_at = time.time() + 600  # 10 minutes
-
-    # Save to pending registrations memory
-    PENDING_REGISTRATIONS[phone_clean] = {
-        "otp": otp,
-        "expires_at": expires_at,
-        "user_data": {
-            "phone": phone_clean,
-            "password_hash": hashed,
-            "name": req.name,
-            "asha_id": req.asha_id,
-            "state": req.state,
-            "district": req.district,
-            "preferred_language": req.preferred_language
-        }
-    }
-
-    # Send the OTP via SMS
-    sms_sent = await send_sms_otp(phone_clean, otp)
-    
-    # In development mode, we can return the OTP so the user can easily copy it if they have no SMS credentials.
-    # We will mark it as dev_otp in the response ONLY if SMS gateways are not set.
-    dev_otp = otp if (not os.getenv("FAST2SMS_API_KEY") and not os.getenv("TWILIO_ACCOUNT_SID")) else None
-
-    return {
-        "success": True,
-        "message": "First level authentication successful. OTP sent to mobile number.",
-        "phone": phone_clean,
-        "dev_otp": dev_otp  # helper for dev testing, null when real credentials exist
-    }
-
-
-@router.post("/auth/register/verify")
-async def verify_registration(req: OTPVerifyRequest):
-    phone_clean = req.phone.strip()
-    if not phone_clean.startswith("+"):
-        phone_clean = "+91" + phone_clean
-
-    pending = PENDING_REGISTRATIONS.get(phone_clean)
-    if not pending:
-        raise HTTPException(status_code=400, detail="No pending registration found for this number.")
-
-    if time.time() > pending["expires_at"]:
-        PENDING_REGISTRATIONS.pop(phone_clean, None)
-        raise HTTPException(status_code=400, detail="OTP expired. Please register again.")
-
-    if pending["otp"] != req.otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP.")
-
-    # Verification successful! Write user to database
-    ud = pending["user_data"]
+    # Insert user directly as verified (no OTP step)
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        # Replace or insert
         cursor.execute("""
-            INSERT OR REPLACE INTO users 
+            INSERT INTO users 
             (phone, password_hash, name, asha_id, state, district, preferred_language, role, verified)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'asha_worker', 1)
-        """, (ud["phone"], ud["password_hash"], ud["name"], ud["asha_id"], ud["state"], ud["district"], ud["preferred_language"]))
+        """, (phone_clean, hashed, req.name, req.asha_id, req.state, req.district, req.preferred_language))
         conn.commit()
-        conn.close()
     except Exception as e:
-        logger.exception("Failed to write verified user to database:")
+        conn.close()
+        logger.exception("Failed to write registered user to database:")
         raise HTTPException(status_code=500, detail="Failed to complete user registration.")
 
-    # Remove from pending memory
-    PENDING_REGISTRATIONS.pop(phone_clean, None)
+    cursor.execute("SELECT * FROM users WHERE phone = ?", (phone_clean,))
+    user = cursor.fetchone()
+    conn.close()
 
     # Generate JWT
     token_payload = {
-        "phone": ud["phone"],
-        "name": ud["name"],
-        "role": "asha_worker",
+        "phone": user["phone"],
+        "name": user["name"],
+        "role": user["role"],
         "exp": time.time() + 86400 * 30  # 30 days
     }
     token = jwt.encode(token_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -199,15 +143,21 @@ async def verify_registration(req: OTPVerifyRequest):
         "success": True,
         "token": token,
         "user": {
-            "phone": ud["phone"],
-            "name": ud["name"],
-            "ashaId": ud["asha_id"],
-            "state": ud["state"],
-            "district": ud["district"],
-            "preferredLanguage": ud["preferred_language"],
-            "role": "asha_worker"
+            "phone": user["phone"],
+            "name": user["name"],
+            "ashaId": user["asha_id"],
+            "state": user["state"],
+            "district": user["district"],
+            "preferredLanguage": user["preferred_language"],
+            "role": user["role"]
         }
     }
+
+
+@router.post("/auth/register/verify")
+async def verify_registration(req: OTPVerifyRequest):
+    # Backward compatibility mock
+    return {"success": True, "message": "OTP verify bypassed"}
 
 
 @router.post("/auth/login")
@@ -219,7 +169,7 @@ async def login_user(req: LoginRequest):
         else:
             raise HTTPException(status_code=400, detail="Invalid phone format. Enter 10 digits.")
 
-    # Check first level: password verification
+    # Check password verification directly
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE phone = ?", (phone_clean,))
@@ -232,63 +182,11 @@ async def login_user(req: LoginRequest):
     if not verify_password(user["password_hash"], req.password):
         raise HTTPException(status_code=401, detail="Invalid password. Please try again.")
 
-    # First level successful! Generate secondary OTP
-    otp = generate_otp()
-    expires_at = time.time() + 600
-
-    PENDING_LOGINS[phone_clean] = {
-        "otp": otp,
-        "expires_at": expires_at,
-        "user_data": {
-            "phone": user["phone"],
-            "name": user["name"],
-            "asha_id": user["asha_id"],
-            "state": user["state"],
-            "district": user["district"],
-            "preferred_language": user["preferred_language"],
-            "role": user["role"]
-        }
-    }
-
-    # Send OTP
-    await send_sms_otp(phone_clean, otp)
-
-    dev_otp = otp if (not os.getenv("FAST2SMS_API_KEY") and not os.getenv("TWILIO_ACCOUNT_SID")) else None
-
-    return {
-        "success": True,
-        "message": "First level password authentication verified. Secondary level OTP sent.",
-        "phone": phone_clean,
-        "dev_otp": dev_otp
-    }
-
-
-@router.post("/auth/login/verify")
-async def verify_login_otp(req: OTPVerifyRequest):
-    phone_clean = req.phone.strip()
-    if not phone_clean.startswith("+"):
-        phone_clean = "+91" + phone_clean
-
-    pending = PENDING_LOGINS.get(phone_clean)
-    if not pending:
-        raise HTTPException(status_code=400, detail="No pending login session found.")
-
-    if time.time() > pending["expires_at"]:
-        PENDING_LOGINS.pop(phone_clean, None)
-        raise HTTPException(status_code=400, detail="OTP expired. Please log in again.")
-
-    if pending["otp"] != req.otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP.")
-
-    # Success! Get user profile
-    ud = pending["user_data"]
-    PENDING_LOGINS.pop(phone_clean, None)
-
-    # Generate JWT
+    # Generate JWT directly
     token_payload = {
-        "phone": ud["phone"],
-        "name": ud["name"],
-        "role": ud["role"],
+        "phone": user["phone"],
+        "name": user["name"],
+        "role": user["role"],
         "exp": time.time() + 86400 * 30  # 30 days
     }
     token = jwt.encode(token_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -297,15 +195,21 @@ async def verify_login_otp(req: OTPVerifyRequest):
         "success": True,
         "token": token,
         "user": {
-            "phone": ud["phone"],
-            "name": ud["name"],
-            "ashaId": ud["asha_id"],
-            "state": ud["state"],
-            "district": ud["district"],
-            "preferredLanguage": ud["preferred_language"],
-            "role": ud["role"]
+            "phone": user["phone"],
+            "name": user["name"],
+            "ashaId": user["asha_id"],
+            "state": user["state"],
+            "district": user["district"],
+            "preferredLanguage": user["preferred_language"],
+            "role": user["role"]
         }
     }
+
+
+@router.post("/auth/login/verify")
+async def verify_login_otp(req: OTPVerifyRequest):
+    # Backward compatibility mock
+    return {"success": True, "message": "OTP verify bypassed"}
 
 class UpdateProfileRequest(BaseModel):
     phone: str

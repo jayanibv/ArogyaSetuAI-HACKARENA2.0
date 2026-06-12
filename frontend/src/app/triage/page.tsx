@@ -32,6 +32,7 @@ export default function TriagePage() {
     setCurrentPatient,
     setCurrentVitals,
     setCurrentSymptoms,
+    setCurrentSymptomsEnglish,
     appendToSymptoms,
     setCurrentPhoto,
     setTriageStep,
@@ -195,9 +196,9 @@ export default function TriagePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           symptoms: translationResult.englishTranscript,
-          age: parseInt(currentPatient?.age || '30'),
-          sex: currentPatient?.sex === 'Female' ? 'F' : currentPatient?.sex === 'Male' ? 'M' : 'other',
-          pregnancy_status: currentPatient?.isPregnant || false,
+          age: typeof currentPatient?.age === 'number' ? currentPatient.age : parseInt(String(currentPatient?.age || '30'), 10),
+          sex: currentPatient?.sex === 'F' ? 'F' : currentPatient?.sex === 'M' ? 'M' : 'other',
+          pregnancy_status: currentPatient?.pregnancyStatus || false,
           lat: 0.0,
           lng: 0.0,
           state: user?.state || 'Unknown',
@@ -256,6 +257,7 @@ export default function TriagePage() {
       };
 
       setCurrentResult(finalResult);
+      setCurrentSymptomsEnglish(translationResult.englishTranscript);
 
       // Create triage session record
       const sessionId = crypto.randomUUID();

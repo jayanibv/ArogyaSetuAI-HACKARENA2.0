@@ -209,7 +209,7 @@ export default function SettingsPage() {
                       type="text"
                       value={user.phone}
                       disabled
-                      className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-500 font-semibold cursor-not-allowed min-h-[46px]"
+                      className="w-full bg-slate-100 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-500 font-semibold cursor-not-allowed min-h-[46px]"
                     />
                   </div>
 
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                       value={ashaId}
                       onChange={(e) => setAshaId(e.target.value)}
                       placeholder="ASHA-10928"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-700 focus:border-teal-500 focus:outline-none min-h-[46px]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black placeholder-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                     />
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export default function SettingsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:border-teal-500 focus:outline-none min-h-[46px]"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                   />
                 </div>
 
@@ -249,10 +249,10 @@ export default function SettingsPage() {
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-200 focus:border-teal-500 focus:outline-none min-h-[46px]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-black focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                     >
                       {INDIAN_STATES.map(s => (
-                        <option key={s} value={s}>{s}</option>
+                        <option key={s} value={s} className="text-black bg-white">{s}</option>
                       ))}
                     </select>
                   </div>
@@ -266,7 +266,7 @@ export default function SettingsPage() {
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
                       required
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 focus:border-teal-500 focus:outline-none min-h-[46px]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                     />
                   </div>
                 </div>
@@ -280,9 +280,7 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-slate-500">
                   Update your user password below (minimum 4 characters). Leave blank if you do not wish to change your password.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                </p>                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase">
                       New Password
@@ -292,7 +290,7 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-700 focus:border-teal-500 focus:outline-none min-h-[46px]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black placeholder-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                     />
                   </div>
 
@@ -305,7 +303,7 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-700 focus:border-teal-500 focus:outline-none min-h-[46px]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-black placeholder-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                     />
                   </div>
                 </div>
@@ -330,20 +328,20 @@ export default function SettingsPage() {
                   <select
                     value={selectedLang}
                     onChange={(e) => setSelectedLang(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-200 font-bold focus:border-teal-500 focus:outline-none min-h-[46px]"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-black font-bold focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none min-h-[46px] shadow-sm"
                   >
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी (Hindi)</option>
-                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                    <option value="ta">தமிழ் (Tamil)</option>
-                    <option value="te">తెలుగు (Telugu)</option>
-                    <option value="ml">മലയാളം (Malayalam)</option>
-                    <option value="mr">मराठी (Marathi)</option>
-                    <option value="bn">বাংলা (Bengali)</option>
-                    <option value="gu">ગુજરાતી (Gujarati)</option>
-                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-                    <option value="or">ଓଡ଼ିଆ (Odia)</option>
-                    <option value="ur">اردو (Urdu)</option>
+                    <option value="en" className="text-black bg-white">English</option>
+                    <option value="hi" className="text-black bg-white">हिन्दी (Hindi)</option>
+                    <option value="kn" className="text-black bg-white">ಕನ್ನಡ (Kannada)</option>
+                    <option value="ta" className="text-black bg-white">தமிழ் (Tamil)</option>
+                    <option value="te" className="text-black bg-white">తెలుగు (Telugu)</option>
+                    <option value="ml" className="text-black bg-white">മലയാളം (Malayalam)</option>
+                    <option value="mr" className="text-black bg-white">मराठी (Marathi)</option>
+                    <option value="bn" className="text-black bg-white">বাংলা (Bengali)</option>
+                    <option value="gu" className="text-black bg-white">ગુજરાતી (Gujarati)</option>
+                    <option value="pa" className="text-black bg-white">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="or" className="text-black bg-white">ଓଡ଼ିଆ (Odia)</option>
+                    <option value="ur" className="text-black bg-white">اردو (Urdu)</option>
                   </select>
                 </div>
               </div>
