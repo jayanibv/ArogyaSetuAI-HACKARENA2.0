@@ -189,63 +189,73 @@ export default function TriagePage() {
       );
 
       // Step 2: Call FastAPI backend to triage the patient using Gemini AI
-      let severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY' = 'LOW';
-      let likelyCondition = 'Common cold or general fatigue';
-      let immediateActions = ['Rest and hydration', 'Monitor temperature'];
-      let redFlags = ['Breathing difficulty', 'Fever exceeding 103°F'];
-      let referTo = 'Primary Health Centre (PHC)';
-      let referTimeframe = 'Next 48 hours';
-      let ashaNote = 'Symptomatic treatment advised.';
-      let drugFirstAid: string | null = 'Paracetamol 500mg (as directed by medical officer)';
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const triageResponse = await fetch(`${backendUrl}/api/triage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symptoms: translationResult.englishTranscript,
+          age: parseInt(currentPatient?.age || '30'),
+          sex: currentPatient?.sex === 'Female' ? 'F' : currentPatient?.sex === 'Male' ? 'M' : 'other',
+          pregnancy_status: currentPatient?.isPregnant || false,
+          lat: 0.0,
+          lng: 0.0,
+          state: user?.state || 'Unknown',
+          district: user?.district || 'Unknown',
+          season: 'summer',
+          photo_base64: currentPhotoBase64
+        })
+      });
 
-      // Check for emergencies locally for absolute safety
-      const symptomsLower = currentSymptoms.toLowerCase();
-      const hasEmergencySigns = 
-        symptomsLower.includes('unconscious') || symptomsLower.includes('बेहोश') || symptomsLower.includes('പ്രജ്ഞೆ') ||
-        symptomsLower.includes('chest pain') || symptomsLower.includes('सीने में दर्द') ||
-        symptomsLower.includes('difficulty breathing') || symptomsLower.includes('सांस लेने में') ||
-        symptomsLower.includes('snake') || symptomsLower.includes('सांप');
-
-      if (hasEmergencySigns || (spo2 && parseInt(spo2) < 90)) {
-        severity = 'EMERGENCY';
-        likelyCondition = 'Acute emergency or hypoxia / snake bite';
-        immediateActions = ['Administer oxygen if available', 'Position patient comfortably', 'Notify medical officer'];
-        redFlags = ['Decreased consciousness', 'Respiratory rate > 30 bpm'];
-        referTo = 'Community Health Centre (CHC) or District Hospital';
-        referTimeframe = 'IMMEDIATE REFERRAL';
-        ashaNote = 'Emergency transport requested.';
-        drugFirstAid = null;
-      } else if ((spo2 && parseInt(spo2) < 94) || (temp && parseFloat(temp) > 39)) {
-        severity = 'HIGH';
-        likelyCondition = 'Severe respiratory tract infection or high grade fever';
-        referTo = 'Primary Health Centre (PHC)';
-        referTimeframe = 'Within 12 hours';
-        drugFirstAid = null;
-      } else if (symptomsLower.includes('diarrhea') || symptomsLower.includes('vomiting') || symptomsLower.includes('दस्त') || symptomsLower.includes('उल्टी')) {
-        severity = 'MEDIUM';
-        likelyCondition = 'Gastroenteritis / Mild dehydration';
-        immediateActions = ['Oral Rehydration Salts (ORS) solution', 'Continue feeding'];
-        referTo = 'Primary Health Centre (PHC) Sub-centre';
-        referTimeframe = 'Within 24 hours';
-        drugFirstAid = 'Oral Rehydration Salts (ORS)';
+      if (!triageResponse.ok) {
+        throw new Error('Failed to fetch triage analysis from backend');
       }
 
-      const mockResult = {
-        severity,
-        likelyCondition,
-        confidence: "88%",
-        immediateActions,
-        redFlags,
-        referTo,
-        referTimeframe,
-        ashaNote,
-        drugFirstAid,
-        followUpDays: severity === 'EMERGENCY' ? 1 : 3,
-        notifyHealthDept: severity === 'EMERGENCY',
-        disclaimer: t.disclaimer
+      const reader = triageResponse.body?.getReader();
+      const decoder = new TextDecoder();
+      let completeJsonStr = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunkStr = decoder.decode(value, { stream: true });
+          const lines = chunkStr.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              completeJsonStr += line.substring(6);
+              setStreamingOutput(`Analyzing clinical condition: ${completeJsonStr.length} bytes...`);
+            } else if (line.trim() !== '') {
+              completeJsonStr += line;
+            }
+          }
+        }
+      }
+
+      let parsedResult;
+      try {
+        parsedResult = JSON.parse(completeJsonStr);
+      } catch(err) {
+        console.error("Failed to parse AI output:", completeJsonStr);
+        throw new Error("Invalid AI response format");
+      }
+
+      const finalResult = {
+        severity: parsedResult.severity,
+        likelyCondition: parsedResult.likely_condition,
+        confidence: parsedResult.confidence || "90%",
+        immediateActions: parsedResult.immediate_actions,
+        redFlags: parsedResult.red_flags,
+        referTo: parsedResult.refer_to,
+        referTimeframe: parsedResult.refer_timeframe,
+        ashaNote: parsedResult.asha_note,
+        drugFirstAid: parsedResult.drug_first_aid,
+        followUpDays: parsedResult.follow_up_days,
+        notifyHealthDept: parsedResult.notify_health_dept,
+        disclaimer: parsedResult.disclaimer || t.disclaimer
       };
 
-      setCurrentResult(mockResult);
+      setCurrentResult(finalResult);
 
       // Create triage session record
       const sessionId = crypto.randomUUID();
@@ -270,7 +280,7 @@ export default function TriagePage() {
         symptomsOriginal: currentSymptoms,
         symptomsEnglish: translationResult.englishTranscript,
         languageCode,
-        result: mockResult,
+        result: finalResult,
         photoBase64: currentPhotoBase64 || undefined,
         referralId: `REF-${Math.floor(100000 + Math.random() * 900000)}`,
         timestamp: new Date().toISOString(),

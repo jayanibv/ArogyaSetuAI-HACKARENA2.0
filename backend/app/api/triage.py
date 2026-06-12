@@ -8,6 +8,17 @@ import google.generativeai as genai
 
 router = APIRouter()
 
+# Manually load .env since python-dotenv is not installed
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.env"))
+if os.path.exists(env_path):
+    with open(env_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    os.environ[key] = value
+
 # Calibrate Gemini 3.5 / 2.5 Flash with verbatim ASHA NHM Guidelines
 GENAI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 if GENAI_API_KEY:
