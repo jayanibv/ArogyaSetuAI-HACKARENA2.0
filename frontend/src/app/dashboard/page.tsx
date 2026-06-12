@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Mic, MapPin, History, ShieldAlert, Users, CloudLightning, RefreshCw, LogOut, LayoutDashboard, Wifi, WifiOff } from 'lucide-react';
+import { Heart, Mic, MapPin, History, ShieldAlert, Users, CloudLightning, RefreshCw, LogOut, LayoutDashboard, Wifi, WifiOff, Sparkles, Activity } from 'lucide-react';
 import { useAppStore } from '../../lib/store';
 import { LANGUAGES } from '../../lib/i18n';
 
@@ -69,38 +69,59 @@ export default function Dashboard() {
     setIsSyncing(false);
   };
 
-  const getSeverityColor = (sev?: string) => {
+  const getSeverityProps = (sev?: string) => {
     switch (sev) {
-      case 'EMERGENCY': return 'bg-red-500/20 text-red-400 border border-red-500/35';
-      case 'HIGH': return 'bg-orange-500/20 text-orange-400 border border-orange-500/35';
-      case 'MEDIUM': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/35';
-      default: return 'bg-green-500/20 text-green-400 border border-green-500/35';
+      case 'EMERGENCY': 
+        return { badge: 'bg-red-100 text-red-700 border border-red-200 shadow-[0_0_12px_rgba(239,68,68,0.4)]', icon: '🚨', pulse: 'animate-pulse', bar: 'border-l-[4px] border-l-red-500' };
+      case 'HIGH': 
+        return { badge: 'bg-orange-100 text-orange-700 border border-orange-200 shadow-[0_0_10px_rgba(249,115,22,0.3)]', icon: '⚠', pulse: '', bar: 'border-l-[4px] border-l-orange-500' };
+      case 'MEDIUM': 
+        return { badge: 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)]', icon: '⚠', pulse: '', bar: 'border-l-[4px] border-l-amber-500' };
+      default: 
+        return { badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.2)]', icon: '✓', pulse: '', bar: 'border-l-[4px] border-l-emerald-500' };
     }
   };
+
+  const StethoscopeHeart = ({ className = "w-6 h-6" }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor" fillOpacity="0.1" />
+      <path d="M16 3c-1.3 0-2.5.6-3.2 1.5M20 7v3c0 2.2-1.8 4-4 4s-4-1.8-4-4v-1" stroke="currentColor" strokeLinecap="round" />
+      <circle cx="12" cy="13" r="2" fill="currentColor" />
+    </svg>
+  );
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/40 to-violet-50/40 text-slate-800 font-sans pb-12">
       {/* ─── Premium Header Navigation ─────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <Heart className="w-8 h-8 text-rose-500 fill-rose-500 animate-pulse" />
+          <StethoscopeHeart className="w-8 h-8 text-teal-600 animate-pulse" />
           <div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+            <h1 className="text-xl font-extrabold tracking-tight text-teal-900">
               {t.title}
             </h1>
-            <p className="text-xs text-slate-400 hidden sm:block">{t.tagline}</p>
+            <p className="text-xs text-slate-500 font-medium hidden sm:block">{t.tagline}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
-            isOnline ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+          {/* Emergency Contact */}
+          <div className="hidden md:flex items-center gap-2 mr-2 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-200">
+            <ShieldAlert className="w-4 h-4 text-rose-600 animate-pulse" />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold text-rose-600 uppercase leading-none tracking-wider">Emergency</span>
+              <span className="text-sm font-extrabold text-rose-700 leading-none mt-0.5">108</span>
+            </div>
+          </div>
+
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${
+            isOnline ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'
           }`}>
             {isOnline ? (
               <>
-                <Wifi className="w-3.5 h-3.5 animate-pulse" />
+                <Wifi className="w-3.5 h-3.5 animate-ping" />
                 <span>{t.onlineBadge}</span>
               </>
             ) : (
@@ -113,7 +134,7 @@ export default function Dashboard() {
 
           <button
             onClick={logout}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">{t.logout}</span>
@@ -122,19 +143,42 @@ export default function Dashboard() {
       </header>
 
       {/* ─── Hero Section ─────────────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
         
+        {/* Floating Background Icons */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <motion.div
+            animate={{ y: [0, -20, 0], opacity: [0.1, 0.3, 0.1], rotate: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+            className="absolute top-[5%] left-[2%]"
+          >
+            <Heart className="w-16 h-16 text-teal-500/20" />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 20, 0], opacity: [0.1, 0.2, 0.1], rotate: [0, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 1 }}
+            className="absolute top-[30%] right-[35%]"
+          >
+            <ShieldAlert className="w-20 h-20 text-violet-400/10" />
+          </motion.div>
+        </div>
+
         {/* Left/Main Column (Stats + Actions) */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-8 relative z-10">
           
           {/* Welcome Card */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-teal-950/40 border border-slate-800 rounded-2xl p-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative overflow-hidden bg-gradient-to-r from-teal-800 to-teal-950 border border-teal-700/50 rounded-[20px] p-8 shadow-xl shadow-teal-900/10"
+          >
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                <span className="text-xs font-bold text-teal-400 uppercase tracking-widest">ASHA Profile</span>
+                <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">ASHA Profile</span>
                 <h2 className="text-3xl font-extrabold text-white mt-1">{user.name}</h2>
-                <p className="text-sm text-slate-400 mt-2">
-                  ID: <span className="text-slate-200 font-mono">{user.ashaId || 'NHM-9321'}</span> | District: <span className="text-slate-200">{user.district}</span> | State: <span className="text-slate-200">{user.state}</span>
+                <p className="text-sm text-teal-100/80 mt-2">
+                  ID: <span className="text-white font-mono">{user.ashaId || 'NHM-9321'}</span> | District: <span className="text-white">{user.district}</span> | State: <span className="text-white">{user.state}</span>
                 </p>
               </div>
               
@@ -143,147 +187,179 @@ export default function Dashboard() {
                   resetTriageFlow();
                   router.push('/triage');
                 }}
-                className="flex items-center justify-center gap-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-950 font-bold px-6 py-4 rounded-xl shadow-lg hover:shadow-teal-500/20 active:scale-95 transition-all text-lg"
+                className="relative group flex items-center justify-center gap-3 bg-white text-teal-900 hover:bg-teal-50 font-extrabold px-6 py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 text-lg border border-teal-100"
               >
-                <Mic className="w-6 h-6 animate-pulse" />
+                <div className="absolute inset-0 rounded-xl ring-4 ring-teal-500/30 animate-pulse pointer-events-none" />
+                <Mic className="w-6 h-6 text-teal-600" />
                 {t.newTriage}
               </button>
             </div>
-            <div className="absolute right-0 bottom-0 w-32 h-32 bg-teal-500/5 blur-3xl rounded-full pointer-events-none" />
-          </div>
+            <div className="absolute right-0 bottom-0 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none" />
+          </motion.div>
 
           {/* Stats Panel */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-slate-400 text-xs font-medium">Total Cases</span>
-              <div className="text-2xl font-bold text-white mt-1">{sessions.length}</div>
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+          >
+            <div className="bg-gradient-to-br from-white to-slate-50 border border-slate-200/60 rounded-[16px] p-5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Total Cases</span>
+              <div className="text-3xl font-extrabold text-teal-900 mt-1">{sessions.length}</div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-slate-400 text-xs font-medium">Emergencies</span>
-              <div className="text-2xl font-bold text-rose-400 mt-1">
+            <div className="bg-gradient-to-br from-white to-rose-50/50 border border-slate-200/60 rounded-[16px] p-5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Emergencies</span>
+              <div className="text-3xl font-extrabold text-red-600 mt-1">
                 {sessions.filter(s => s.result?.severity === 'EMERGENCY').length}
               </div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-slate-400 text-xs font-medium">Synced</span>
-              <div className="text-2xl font-bold text-emerald-400 mt-1">
+            <div className="bg-gradient-to-br from-white to-emerald-50/50 border border-slate-200/60 rounded-[16px] p-5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Synced</span>
+              <div className="text-3xl font-extrabold text-emerald-600 mt-1">
                 {sessions.filter(s => s.synced).length}
               </div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-slate-400 text-xs font-medium">Offline Queue</span>
-              <div className="text-2xl font-bold text-amber-400 mt-1">{syncQueue.length}</div>
+            <div className="bg-gradient-to-br from-white to-amber-50/50 border border-slate-200/60 rounded-[16px] p-5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Offline Queue</span>
+              <div className="text-3xl font-extrabold text-amber-600 mt-1">{syncQueue.length}</div>
+              {syncQueue.length === 0 && (
+                <StethoscopeHeart className="absolute -right-2 -bottom-2 w-16 h-16 text-teal-600/10 rotate-12 group-hover:scale-110 transition-transform duration-300" />
+              )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Action Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+          >
             <div
               onClick={() => router.push('/map')}
-              className="bg-slate-900 border border-slate-800 hover:border-teal-500/40 hover:bg-slate-850 cursor-pointer rounded-xl p-5 group transition-all"
+              className="bg-white border border-slate-200/80 shadow-sm hover:shadow-lg hover:border-teal-200 hover:scale-[1.02] cursor-pointer rounded-[16px] p-5 group transition-all duration-300"
             >
-              <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400 mb-4 group-hover:scale-110 transition-transform">
-                <MapPin className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 mb-4 group-hover:scale-110 transition-transform">
+                <MapPin className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-white">{t.phcLocator}</h3>
-              <p className="text-xs text-slate-400 mt-2">Find closest medical facility, contact info and travel routes.</p>
+              <h3 className="font-bold text-slate-800">{t.phcLocator}</h3>
+              <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Find closest medical facility, contact info and travel routes.</p>
             </div>
 
             <div
               onClick={() => router.push('/admin')}
-              className="bg-slate-900 border border-slate-800 hover:border-emerald-500/40 hover:bg-slate-850 cursor-pointer rounded-xl p-5 group transition-all"
+              className="bg-white border border-slate-200/80 shadow-sm hover:shadow-lg hover:border-teal-200 hover:scale-[1.02] cursor-pointer rounded-[16px] p-5 group transition-all duration-300"
             >
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
-                <LayoutDashboard className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 mb-4 group-hover:scale-110 transition-transform">
+                <LayoutDashboard className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-white">Analytics Panel</h3>
-              <p className="text-xs text-slate-400 mt-2">Access health patterns, severity metrics, and sync statistics.</p>
+              <h3 className="font-bold text-slate-800">Analytics Panel</h3>
+              <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Access health patterns, severity metrics, and sync statistics.</p>
             </div>
 
             <div
               onClick={() => router.push('/settings')}
-              className="bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-850 cursor-pointer rounded-xl p-5 group transition-all"
+              className="bg-white border border-slate-200/80 shadow-sm hover:shadow-lg hover:border-slate-300 hover:scale-[1.02] cursor-pointer rounded-[16px] p-5 group transition-all duration-300"
             >
-              <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 mb-4 group-hover:scale-110 transition-transform">
-                <History className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 mb-4 group-hover:scale-110 transition-transform">
+                <History className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-white">Profile Settings</h3>
-              <p className="text-xs text-slate-400 mt-2">Configure custom language preferences, sound, and offline storage.</p>
+              <h3 className="font-bold text-slate-800">Profile Settings</h3>
+              <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Configure custom language preferences, sound, and offline storage.</p>
             </div>
-          </div>
+          </motion.div>
 
         </div>
 
         {/* Right Column (Sync Queue & Recent Triage List) */}
-        <div className="space-y-8">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+          className="space-y-6 relative z-10"
+        >
           
           {/* Sync Box */}
           {syncQueue.length > 0 && (
-            <div className="bg-slate-900 border border-amber-500/20 rounded-2xl p-5">
+            <div className="bg-amber-50 border border-amber-200 rounded-[16px] p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
-                  <CloudLightning className="w-5 h-5 animate-pulse" />
+                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                  <CloudLightning className="w-5 h-5 animate-pulse text-amber-600" />
                   <span>Pending Offline Sync ({syncQueue.length})</span>
                 </div>
               </div>
               <button
                 disabled={!isOnline || isSyncing}
                 onClick={handleSync}
-                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold rounded-xl shadow hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
               >
-                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? 'Syncing...' : 'Sync Data Now'}
               </button>
             </div>
           )}
 
           {/* Recent Triage Sessions */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4">{t.historyTitle}</h3>
+          <div className="bg-white border border-slate-200/80 rounded-[20px] p-6 shadow-lg shadow-slate-200/50 flex flex-col h-full max-h-[600px]">
+            <h3 className="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+              <History className="w-5 h-5 text-teal-600" />
+              {t.historyTitle}
+            </h3>
             
-            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+            <div className="space-y-3 overflow-y-auto pr-2 -mr-2">
               {sessions.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-sm">No recent triage histories.</div>
-              ) : (
-                sessions.map((sess) => (
-                  <div 
-                    key={sess.id} 
-                    onClick={() => {
-                      setCurrentPatient(sess.patient);
-                      setCurrentVitals(sess.vitals || {});
-                      setCurrentSymptoms(sess.symptomsOriginal);
-                      setCurrentSymptomsEnglish(sess.symptomsEnglish || '');
-                      if (sess.photoBase64) setCurrentPhoto(sess.photoBase64);
-                      if (sess.result) setCurrentResult(sess.result);
-                      setTriageStep(3);
-                      router.push('/results');
-                    }}
-                    className="p-3 bg-slate-950 border border-slate-850 hover:border-teal-500/40 hover:bg-slate-900/60 cursor-pointer rounded-xl space-y-2 transition-all group active:scale-95"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm text-slate-200 group-hover:text-teal-400 transition-colors">
-                        {sess.patient.name} ({sess.patient.age})
-                      </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getSeverityColor(sess.result?.severity)}`}>
-                        {sess.result?.severity || 'LOW'}
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-400 line-clamp-1 pointer-events-none">
-                      {sess.symptomsOriginal}
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 pointer-events-none">
-                      <span>{new Date(sess.timestamp).toLocaleDateString()}</span>
-                      <span className={sess.synced ? 'text-emerald-400' : 'text-amber-400'}>
-                        {sess.synced ? 'Synced' : 'Local Only'}
-                      </span>
-                    </div>
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 border border-slate-100">
+                    <StethoscopeHeart className="w-8 h-8 text-slate-300" />
                   </div>
-                ))
+                  <span className="text-sm font-semibold">No recent triage histories.</span>
+                </div>
+              ) : (
+                sessions.map((sess) => {
+                  const sevProps = getSeverityProps(sess.result?.severity);
+                  return (
+                    <div 
+                      key={sess.id} 
+                      onClick={() => {
+                        setCurrentPatient(sess.patient);
+                        setCurrentVitals(sess.vitals || {});
+                        setCurrentSymptoms(sess.symptomsOriginal);
+                        setCurrentSymptomsEnglish(sess.symptomsEnglish || '');
+                        if (sess.photoBase64) setCurrentPhoto(sess.photoBase64);
+                        if (sess.result) setCurrentResult(sess.result);
+                        setTriageStep(3);
+                        router.push('/results');
+                      }}
+                      className={`relative p-4 bg-slate-50 hover:bg-white border border-slate-200 hover:border-teal-300 cursor-pointer rounded-[14px] shadow-sm hover:shadow-md transition-all duration-300 group active:scale-[0.98] ${sevProps.bar} overflow-hidden`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-extrabold text-sm text-slate-800 group-hover:text-teal-700 transition-colors">
+                          {sess.patient.name} ({sess.patient.age})
+                        </span>
+                        <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wide ${sevProps.badge}`}>
+                          <span className={`${sevProps.pulse}`}>{sevProps.icon}</span>
+                          {sess.result?.severity || 'LOW'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 font-medium line-clamp-1 pointer-events-none mb-3">
+                        {sess.symptomsOriginal}
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 pointer-events-none border-t border-slate-200/60 pt-2">
+                        <span>{new Date(sess.timestamp).toLocaleDateString()}</span>
+                        <span className={`flex items-center gap-1 ${sess.synced ? 'text-emerald-500' : 'text-amber-500'}`}>
+                          {sess.synced ? <CloudLightning className="w-3 h-3" /> : <RefreshCw className="w-3 h-3" />}
+                          {sess.synced ? 'Synced' : 'Local Only'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
 
-        </div>
+        </motion.div>
 
       </main>
     </div>

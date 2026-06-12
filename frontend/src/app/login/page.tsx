@@ -757,7 +757,10 @@ export default function LoginPage() {
       <div className="hidden lg:flex relative overflow-hidden flex-col justify-end p-16 bg-slate-900">
         
         {/* Full-size doctor photo background */}
-        <img
+        <motion.img
+          initial={{ scale: 1.05 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
           src="/doctor_stethoscope.jpeg"
           alt="AarogyaSetu Healthcare banner"
           className="absolute inset-0 w-full h-full object-cover grayscale-[10%] object-center pointer-events-none"
@@ -765,12 +768,48 @@ export default function LoginPage() {
         
         {/* Soft blue gradient overlay (matching reference image) */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-800/40 to-transparent pointer-events-none" />
+
+        {/* Floating Icons Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <motion.div
+            animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3], rotate: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            className="absolute top-[20%] left-[10%]"
+          >
+            <Heart className="w-16 h-16 text-rose-500/30" />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 20, 0], opacity: [0.2, 0.5, 0.2], rotate: [0, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+            className="absolute top-[40%] right-[15%]"
+          >
+            <Shield className="w-24 h-24 text-sky-400/20" />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -15, 0], opacity: [0.4, 0.7, 0.4], scale: [1, 1.1, 1] }}
+            transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 2 }}
+            className="absolute bottom-[40%] left-[25%]"
+          >
+            <Sparkles className="w-10 h-10 text-amber-400/30" />
+          </motion.div>
+        </div>
         
         {/* Branding block in bottom-left */}
-        <div className="relative z-10 space-y-4 max-w-lg">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="relative z-10 space-y-4 max-w-lg"
+        >
           <div className="space-y-2">
             {/* Colorful custom pill logo */}
-            <PillLogo />
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="inline-block"
+            >
+              <PillLogo />
+            </motion.div>
             
             {/* Localized Dynamic App Name */}
             <h1 className="text-3xl font-black text-white uppercase tracking-wider">
@@ -782,11 +821,32 @@ export default function LoginPage() {
           <p className="text-slate-200 text-sm font-semibold leading-relaxed tracking-wide text-white-keep">
             {lt.slogan}
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* RIGHT COLUMN: Clean White Form Area (Same as reference image) */}
-      <div className="flex-1 bg-white flex flex-col justify-between items-center p-8 md:p-16 relative">
+      <div className="flex-1 bg-white flex flex-col justify-between items-center p-8 md:p-16 relative overflow-hidden">
+        
+        {/* Floating Elements for Right Side */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <motion.div
+            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+            className="absolute -top-10 -right-10 w-48 h-48 bg-sky-100/50 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
+            transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 }}
+            className="absolute -bottom-10 -left-10 w-48 h-48 bg-amber-100/50 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ y: [0, -25, 0], x: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", delay: 2 }}
+            className="absolute top-[30%] left-[5%] opacity-20"
+          >
+            <CheckCircle className="w-8 h-8 text-sky-400" />
+          </motion.div>
+        </div>
         
         {/* Quick Language Dropdown at top right corner */}
         <div className="w-full flex justify-end">
@@ -813,7 +873,12 @@ export default function LoginPage() {
         </div>
 
         {/* Central Form Box */}
-        <div className="w-full max-w-sm my-auto">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full max-w-sm my-auto relative z-10"
+        >
           <div className="space-y-6">
             
             {/* Top Logo block */}
@@ -1012,7 +1077,7 @@ export default function LoginPage() {
               </div>
             </form>
           </div>
-        </div>
+        </motion.div>
 
         {/* Emergency contact section at the bottom (clinical requirements) */}
         <div className="w-full max-w-sm pt-6 border-t border-slate-100">
