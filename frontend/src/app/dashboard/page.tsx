@@ -20,7 +20,14 @@ export default function Dashboard() {
     isSyncing,
     setIsOnline,
     setIsSyncing,
-    markSessionSynced
+    markSessionSynced,
+    resetTriageFlow,
+    setCurrentPatient,
+    setCurrentVitals,
+    setCurrentSymptoms,
+    setCurrentPhoto,
+    setCurrentResult,
+    setTriageStep
   } = useAppStore();
 
   const t = LANGUAGES[languageCode]?.translations || LANGUAGES['hi'].translations;
@@ -131,7 +138,10 @@ export default function Dashboard() {
               </div>
               
               <button
-                onClick={() => router.push('/triage')}
+                onClick={() => {
+                  resetTriageFlow();
+                  router.push('/triage');
+                }}
                 className="flex items-center justify-center gap-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-950 font-bold px-6 py-4 rounded-xl shadow-lg hover:shadow-teal-500/20 active:scale-95 transition-all text-lg"
               >
                 <Mic className="w-6 h-6 animate-pulse" />
@@ -235,19 +245,29 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-slate-500 text-sm">No recent triage histories.</div>
               ) : (
                 sessions.map((sess) => (
-                  <div key={sess.id} className="p-3 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div 
+                    key={sess.id} 
+                    onClick={() => {
+                      setCurrentPatient(sess.patient);
+                      setCurrentVitals(sess.vitals || {});
+                      setCurrentSymptoms(sess.symptomsOriginal);
+                      if (sess.photoBase64) setCurrentPhoto(sess.photoBase64);
+                      if (sess.result) setCurrentResult(sess.result);
+                      setTriageStep(3);
+                      router.push('/results');
+                    }}
+                    className="p-3 bg-slate-950 border border-slate-850 hover:border-teal-500/40 cursor-pointer rounded-xl space-y-2 transition-colors active:scale-95"
+                  >
+                    <div className="flex items-center justify-between pointer-events-none">
                       <span className="font-semibold text-sm text-slate-200">{sess.patient.name} ({sess.patient.age})</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getSeverityColor(sess.result?.severity)}`}>
                         {sess.result?.severity || 'LOW'}
                       </span>
                     </div>
-
-                    <div className="text-xs text-slate-400 line-clamp-1">
+                    <div className="text-xs text-slate-400 line-clamp-1 pointer-events-none">
                       {sess.symptomsOriginal}
                     </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 pointer-events-none">
                       <span>{new Date(sess.timestamp).toLocaleDateString()}</span>
                       <span className={sess.synced ? 'text-emerald-400' : 'text-amber-400'}>
                         {sess.synced ? 'Synced' : 'Local Only'}

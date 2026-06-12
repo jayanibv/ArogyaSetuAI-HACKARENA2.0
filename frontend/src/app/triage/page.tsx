@@ -196,7 +196,7 @@ export default function TriagePage() {
       let referTo = 'Primary Health Centre (PHC)';
       let referTimeframe = 'Next 48 hours';
       let ashaNote = 'Symptomatic treatment advised.';
-      let drugFirstAid = 'Paracetamol 500mg (as directed by medical officer)';
+      let drugFirstAid: string | null = 'Paracetamol 500mg (as directed by medical officer)';
 
       // Check for emergencies locally for absolute safety
       const symptomsLower = currentSymptoms.toLowerCase();
@@ -214,17 +214,20 @@ export default function TriagePage() {
         referTo = 'Community Health Centre (CHC) or District Hospital';
         referTimeframe = 'IMMEDIATE REFERRAL';
         ashaNote = 'Emergency transport requested.';
+        drugFirstAid = null;
       } else if ((spo2 && parseInt(spo2) < 94) || (temp && parseFloat(temp) > 39)) {
         severity = 'HIGH';
         likelyCondition = 'Severe respiratory tract infection or high grade fever';
         referTo = 'Primary Health Centre (PHC)';
         referTimeframe = 'Within 12 hours';
+        drugFirstAid = null;
       } else if (symptomsLower.includes('diarrhea') || symptomsLower.includes('vomiting') || symptomsLower.includes('दस्त') || symptomsLower.includes('उल्टी')) {
         severity = 'MEDIUM';
         likelyCondition = 'Gastroenteritis / Mild dehydration';
         immediateActions = ['Oral Rehydration Salts (ORS) solution', 'Continue feeding'];
         referTo = 'Primary Health Centre (PHC) Sub-centre';
         referTimeframe = 'Within 24 hours';
+        drugFirstAid = 'Oral Rehydration Salts (ORS)';
       }
 
       const mockResult = {
@@ -324,7 +327,7 @@ export default function TriagePage() {
         </button>
 
         <span className="text-sm font-semibold text-slate-400">
-          Step {triageStep + 1} of 3
+          {triageStep < 3 ? `Step ${triageStep + 1} of 3` : 'Processing...'}
         </span>
       </header>
 
